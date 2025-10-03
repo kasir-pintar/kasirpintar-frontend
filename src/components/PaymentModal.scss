@@ -1,0 +1,82 @@
+// LOKASI: src/components/PaymentModal.scss
+.payment-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.payment-modal {
+  width: 90%;
+  max-width: 450px;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  outline: none;
+  font-family: sans-serif;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .summary-row, .input-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+  }
+
+  .total-amount, .change-amount {
+    font-weight: bold;
+    font-size: 1.3rem;
+  }
+
+  .change-amount {
+    color: #28a745;
+  }
+
+  .input-row {
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      text-align: right;
+      width: 50%;
+    }
+  }
+
+  .actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+
+    button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    .button-primary {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .button-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+  }
+}

@@ -1,0 +1,54 @@
+// LOKASI: src/css/shared-styles.scss
+.page-container {
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.back-link {
+  text-decoration: none;
+  color: #007bff;
+  margin-bottom: 20px;
+  display: inline-block;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.page-title {
+  margin-top: 0;
+}
+
+.error-message {
+  color: #d93025;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+
+  th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+
+  td[colSpan="4"] {
+    text-align: center;
+    color: #888;
+  }
+}

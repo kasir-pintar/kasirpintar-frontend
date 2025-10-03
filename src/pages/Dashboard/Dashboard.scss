@@ -1,0 +1,45 @@
+// LOKASI: src/pages/Dashboard/Dashboard.scss
+.dashboard-layout {
+  font-family: sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  border-bottom: 1px solid #eee;
+
+  .logout-button {
+    padding: 8px 16px;
+    cursor: pointer;
+  }
+}
+
+.dashboard-content {
+  padding: 20px;
+}
+
+.dashboard-nav {
+  margin-top: 20px;
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    margin-bottom: 10px;
+  }
+
+  a {
+    text-decoration: none;
+    color: #007bff;
+    font-size: 1.1rem;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

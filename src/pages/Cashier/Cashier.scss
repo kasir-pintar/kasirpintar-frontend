@@ -1,0 +1,269 @@
+// LOKASI: src/pages/Cashier/Cashier.scss (Lengkap dengan Perbaikan Responsif)
+.cashier-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: sans-serif;
+  background-color: #f8f9fa;
+}
+
+.cashier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 60px;
+  border-bottom: 1px solid #dee2e6;
+  flex-shrink: 0;
+  background-color: #ffffff;
+
+  .logout-button {
+    padding: 8px 16px;
+    cursor: pointer;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+  }
+}
+
+.cashier-main-content {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.menu-section {
+  flex: 3;
+  padding: 20px;
+  border-right: 1px solid #dee2e6;
+  overflow-y: auto;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.menu-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+  background-color: #ffffff;
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .menu-name {
+    font-weight: bold;
+    margin: 5px 0;
+  }
+
+  .menu-price, .menu-stock {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #555;
+  }
+}
+
+.cart-section {
+  flex: 1;
+  min-width: 300px; // Menjamin lebar keranjang tidak terlalu kecil
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #343a40;
+  padding-bottom: 10px;
+
+  .clear-cart-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+    &:hover { text-decoration: underline; }
+  }
+}
+
+.cart-items {
+  flex-grow: 1;
+  margin: 10px 0;
+  overflow-y: auto;
+}
+
+.cart-empty {
+  color: #888;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.cart-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+
+  .item-info {
+    display: flex;
+    justify-content: space-between;
+    .item-name { font-weight: bold; }
+    .item-price { color: #555; font-size: 14px; }
+  }
+
+  .item-controls {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+
+    .control-button {
+      width: 25px;
+      height: 25px;
+      border: 1px solid #ccc;
+      background-color: #f1f1f1;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .item-quantity {
+      padding: 0 10px;
+      font-weight: bold;
+    }
+
+    .remove-button {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #dc3545;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 5px;
+    }
+  }
+}
+
+.cart-summary {
+  flex-shrink: 0;
+  padding-top: 10px;
+  border-top: 1px solid #ccc;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.process-button {
+  width: 100%;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #218838;
+  }
+}
+
+.error-message {
+    color: #d93025;
+}
+
+.filter-controls {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.search-input-group {
+  input {
+    width: 95%; /* Disesuaikan agar padding tidak overflow */
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+}
+
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 5px; /* Memberi ruang untuk scrollbar jika muncul */
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  .category-tab {
+    padding: 8px 16px;
+    border: 1px solid #007bff;
+    background-color: #fff;
+    color: #007bff;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+
+    &:hover {
+      background-color: #e9f2ff;
+    }
+
+    &.active {
+      background-color: #007bff;
+      color: #fff;
+    }
+  }
+}
+
+
+/* --- PERBAIKAN RESPONSIVE UNTUK TAMPILAN MOBILE --- */
+/* Kode di bawah ini hanya akan aktif jika lebar layar 768px atau lebih kecil */
+@media (max-width: 768px) {
+  .cashier-main-content {
+    flex-direction: column; // Mengubah layout menjadi tumpukan vertikal
+    overflow-y: auto; // Memungkinkan seluruh halaman untuk di-scroll
+  }
+
+  .menu-section {
+    border-right: none; // Hapus garis pemisah kanan
+    border-bottom: 1px solid #dee2e6; // Tambah garis pemisah bawah
+    overflow-y: visible; // Matikan scroll internal
+    flex-shrink: 0; // Mencegah bagian menu menyusut
+  }
+  
+  .cart-section {
+    min-width: 100%; // Ambil lebar penuh
+    overflow-y: visible; // Matikan scroll internal
+    border-left: none; // Hapus garis pemisah kiri
+    flex-shrink: 0; // Mencegah bagian keranjang menyusut
+  }
+
+  .menu-grid {
+    // Sedikit menyesuaikan ukuran minimal item di layar kecil
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
