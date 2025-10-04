@@ -1,0 +1,107 @@
+// LOKASI: src/components/ReceiptModal.scss (VERSI FINAL DENGAN PERBAIKAN CETAK)
+
+.receipt-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+
+.receipt-modal {
+  background: white; padding: 20px; border-radius: 8px; outline: none;
+  width: 90%; max-width: 400px;
+}
+
+.receipt-content {
+  font-family: 'Courier New', Courier, monospace; color: #000;
+  h2, h3, p { margin: 5px 0; }
+  h2 { text-align: center; }
+  hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+  
+  .receipt-header {
+    text-align: center;
+    .receipt-details p {
+      display: flex;
+      justify-content: space-between;
+      text-align: left;
+      font-size: 0.9em;
+    }
+  }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.9em;
+    th, td { padding: 3px 0; }
+    th { text-align: left; border-bottom: 1px dashed #000; }
+    td:nth-child(1) { width: 45%; word-break: break-all; } // Agar nama item panjang bisa turun baris
+    td:nth-child(2) { text-align: center; }
+    td:nth-child(3), td:nth-child(4) { text-align: right; }
+  }
+
+  .receipt-footer {
+    .receipt-summary p, .receipt-summary h3 {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+    }
+    .thank-you { font-size: 0.9em; margin-top: 20px; text-align: center; }
+  }
+}
+
+.receipt-actions {
+  display: flex; justify-content: space-between; gap: 10px; margin-top: 20px;
+  button {
+    flex-grow: 1; padding: 12px; border: none; border-radius: 5px;
+    cursor: pointer; font-weight: bold;
+  }
+  .print-button { background-color: #007bff; color: white; }
+  .new-trx-button { background-color: #28a745; color: white; }
+}
+
+
+// --- ATURAN BARU YANG LEBIH CANGGIH SAAT MENCETAK ---
+@media print {
+  // Sembunyikan semua elemen di halaman kecuali konten struk
+  body * {
+    visibility: hidden;
+  }
+  .receipt-content, .receipt-content * {
+    visibility: visible;
+  }
+
+  // Atur ulang layout halaman cetak
+  @page {
+    size: 80mm auto; // Lebar 80mm, tinggi otomatis menyesuaikan konten
+    margin: 5mm; // Beri sedikit margin di kertas
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  // Posisikan konten struk di area cetak
+  .receipt-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    font-size: 10pt; // Ukuran font yang umum untuk struk
+  }
+
+  // Sembunyikan tombol aksi saat mencetak
+  .receipt-actions {
+    display: none;
+  }
+
+  // Pastikan modal overlay dan modal-nya sendiri tidak mengganggu
+  .receipt-modal-overlay, .receipt-modal {
+    position: static;
+    width: auto;
+    height: auto;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
+  }
+}

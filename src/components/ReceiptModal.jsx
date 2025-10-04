@@ -1,0 +1,58 @@
+// LOKASI: src/components/ReceiptModal.jsx
+import React from 'react';
+import Modal from 'react-modal';
+import { format } from 'date-fns'; // <-- Import library format tanggal
+import { id } from 'date-fns/locale'; // <-- Import lokal Indonesia
+import './ReceiptModal.scss';
+
+function ReceiptModal({ isOpen, onClose, transactionData }) {
+  if (!transactionData) {
+    return null;
+  }
+  const handlePrint = () => { window.print(); };
+
+  return (
+    <Modal isOpen={isOpen} onRequestClose={onClose} className="receipt-modal" overlayClassName="receipt-modal-overlay">
+      <div id="receipt-content" className="receipt-content">
+        <header className="receipt-header">
+          <h2>Struk Pembayaran</h2><p>KasirPintar</p><hr />
+          <div className="receipt-details">
+            <p><span>No. Invoice:</span> {transactionData.InvoiceNumber}</p>
+            {/* Format waktu menjadi lebih mudah dibaca */}
+            <p><span>Waktu:</span> {format(new Date(transactionData.CreatedAt), 'dd MMM yyyy, HH:mm', { locale: id })}</p>
+            <p><span>Kasir:</span> {transactionData.User?.Name || 'N/A'}</p>
+          </div>
+        </header>
+        <main className="receipt-body">
+          <table>
+            <thead><tr><th>Item</th><th>Jml</th><th>Harga</th><th>Subtotal</th></tr></thead>
+            <tbody>
+              {transactionData.Details?.map(detail => (
+                <tr key={detail.ID}>
+                  <td>{detail.Menu?.Name || 'N/A'}</td>
+                  <td>{detail.Quantity}</td>
+                  <td>{(detail.Price || 0).toLocaleString('id-ID')}</td>
+                  <td>{(detail.Price * detail.Quantity).toLocaleString('id-ID')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </main>
+        <footer className="receipt-footer">
+          <hr />
+          <div className="receipt-summary">
+            <p><span>Metode Bayar:</span> {transactionData.PaymentMethod}</p>
+            <h3><span>Total:</span> Rp {(transactionData.TotalAmount || 0).toLocaleString('id-ID')}</h3>
+          </div>
+          <hr />
+          <p className="thank-you">Terima kasih atas kunjungan Anda!</p>
+        </footer>
+      </div>
+      <div className="receipt-actions">
+        <button onClick={handlePrint} className="print-button">Cetak Struk</button>
+        <button onClick={onClose} className="new-trx-button">Transaksi Baru</button>
+      </div>
+    </Modal>
+  );
+}
+export default ReceiptModal;

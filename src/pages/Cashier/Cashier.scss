@@ -1,4 +1,4 @@
-// LOKASI: src/pages/Cashier/Cashier.scss (Lengkap dengan Perbaikan Responsif)
+// LOKASI: src/pages/Cashier/Cashier.scss (VERSI FINAL & LENGKAP)
 .cashier-layout {
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@
 
 .cart-section {
   flex: 1;
-  min-width: 300px; // Menjamin lebar keranjang tidak terlalu kecil
+  min-width: 300px;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -198,7 +198,7 @@
 
 .search-input-group {
   input {
-    width: 95%; /* Disesuaikan agar padding tidak overflow */
+    width: 95%;
     padding: 10px;
     font-size: 1rem;
     border: 1px solid #ccc;
@@ -210,11 +210,9 @@
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  padding-bottom: 5px; /* Memberi ruang untuk scrollbar jika muncul */
+  padding-bottom: 5px;
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
 
@@ -227,43 +225,32 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
-
-    &:hover {
-      background-color: #e9f2ff;
-    }
-
-    &.active {
-      background-color: #007bff;
-      color: #fff;
-    }
+    &:hover { background-color: #e9f2ff; }
+    &.active { background-color: #007bff; color: #fff; }
   }
 }
 
-
-/* --- PERBAIKAN RESPONSIVE UNTUK TAMPILAN MOBILE --- */
-/* Kode di bawah ini hanya akan aktif jika lebar layar 768px atau lebih kecil */
 @media (max-width: 768px) {
   .cashier-main-content {
-    flex-direction: column; // Mengubah layout menjadi tumpukan vertikal
-    overflow-y: auto; // Memungkinkan seluruh halaman untuk di-scroll
+    flex-direction: column;
+    overflow-y: auto;
   }
 
   .menu-section {
-    border-right: none; // Hapus garis pemisah kanan
-    border-bottom: 1px solid #dee2e6; // Tambah garis pemisah bawah
-    overflow-y: visible; // Matikan scroll internal
-    flex-shrink: 0; // Mencegah bagian menu menyusut
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+    overflow-y: visible;
+    flex-shrink: 0;
   }
   
   .cart-section {
-    min-width: 100%; // Ambil lebar penuh
-    overflow-y: visible; // Matikan scroll internal
-    border-left: none; // Hapus garis pemisah kiri
-    flex-shrink: 0; // Mencegah bagian keranjang menyusut
+    min-width: 100%;
+    overflow-y: visible;
+    border-left: none;
+    flex-shrink: 0;
   }
 
   .menu-grid {
-    // Sedikit menyesuaikan ukuran minimal item di layar kecil
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
 }
