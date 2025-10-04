@@ -1,4 +1,4 @@
-// LOKASI: src/components/ReceiptModal.jsx (KODE LENGKAP & FINAL)
+// LOKASI: src/components/ReceiptModal.jsx (FINAL DENGAN NAMA PELANGGAN)
 import React from 'react';
 import Modal from 'react-modal';
 import { format } from 'date-fns';
@@ -13,8 +13,6 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
     window.print();
   };
 
-  // Ambil Subtotal dan Diskon dari transactionData.
-  // Jika Subtotal tidak ada, hitung manual dari TotalAmount + Discount
   const subtotal = transactionData.Subtotal || (transactionData.TotalAmount + transactionData.Discount);
   const discount = transactionData.Discount || 0;
 
@@ -29,6 +27,8 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
             <p><span>No. Invoice:</span> {transactionData.InvoiceNumber}</p>
             <p><span>Waktu:</span> {format(new Date(transactionData.CreatedAt), 'dd MMM yyyy, HH:mm', { locale: id })}</p>
             <p><span>Kasir:</span> {transactionData.User?.Name || 'N/A'}</p>
+            {/* --- BARIS BARU UNTUK NAMA PELANGGAN --- */}
+            <p><span>Pelanggan:</span> {transactionData.Customer?.Name || 'Pelanggan Umum'}</p>
           </div>
         </header>
         <main className="receipt-body">

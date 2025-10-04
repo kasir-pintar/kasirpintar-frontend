@@ -307,3 +307,41 @@
     }
   }
 }
+
+/* LOKASI: src/pages/Cashier/Cashier.scss (TAMBAHKAN DI AKHIR) */
+
+.customer-display {
+  padding: 15px;
+  background-color: #e9f2ff;
+  border: 1px solid #b3d4ff;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  .customer-info {
+    .label {
+      font-size: 0.9em;
+      color: #6c757d;
+      display: block;
+    }
+
+    .name {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+  }
+
+  .change-customer-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-weight: bold;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
