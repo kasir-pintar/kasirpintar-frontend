@@ -1,14 +1,12 @@
 // LOKASI: src/components/ReceiptModal.jsx
 import React from 'react';
 import Modal from 'react-modal';
-import { format } from 'date-fns'; // <-- Import library format tanggal
-import { id } from 'date-fns/locale'; // <-- Import lokal Indonesia
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 import './ReceiptModal.scss';
 
 function ReceiptModal({ isOpen, onClose, transactionData }) {
-  if (!transactionData) {
-    return null;
-  }
+  if (!transactionData) { return null; }
   const handlePrint = () => { window.print(); };
 
   return (
@@ -18,7 +16,6 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
           <h2>Struk Pembayaran</h2><p>KasirPintar</p><hr />
           <div className="receipt-details">
             <p><span>No. Invoice:</span> {transactionData.InvoiceNumber}</p>
-            {/* Format waktu menjadi lebih mudah dibaca */}
             <p><span>Waktu:</span> {format(new Date(transactionData.CreatedAt), 'dd MMM yyyy, HH:mm', { locale: id })}</p>
             <p><span>Kasir:</span> {transactionData.User?.Name || 'N/A'}</p>
           </div>
@@ -43,6 +40,13 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
           <div className="receipt-summary">
             <p><span>Metode Bayar:</span> {transactionData.PaymentMethod}</p>
             <h3><span>Total:</span> Rp {(transactionData.TotalAmount || 0).toLocaleString('id-ID')}</h3>
+            {/* --- TAMPILAN BARU UNTUK DATA TUNAI --- */}
+            {transactionData.PaymentMethod === 'Tunai' && (
+              <>
+                <p><span>Uang Tunai:</span> Rp {(transactionData.CashTendered || 0).toLocaleString('id-ID')}</p>
+                <p><span>Kembalian:</span> Rp {(transactionData.Change || 0).toLocaleString('id-ID')}</p>
+              </>
+            )}
           </div>
           <hr />
           <p className="thank-you">Terima kasih atas kunjungan Anda!</p>

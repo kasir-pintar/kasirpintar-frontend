@@ -1,4 +1,4 @@
-// LOKASI: src/pages/Cashier/Cashier.jsx (VERSI FINAL & LENGKAP)
+// LOKASI: src/pages/Cashier/Cashier.jsx (FINAL DENGAN SEMUA FITUR)
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchMenus, createTransaction } from '../../services/cashier';
@@ -29,10 +29,15 @@ function CashierPage() {
   const clearCart = () => { setCart([]); };
   const calculateTotal = () => { return cart.reduce((total, item) => total + item.price * item.quantity, 0); };
   
-  const handleProcessTransaction = async (paymentMethod) => {
+  const handleProcessTransaction = async (paymentMethod, cashTendered, change) => {
     if (cart.length === 0) { return; }
     const itemsToSubmit = cart.map(({ menu_id, quantity }) => ({ menu_id, quantity }));
-    const transactionData = { items: itemsToSubmit, payment_method: paymentMethod };
+    const transactionData = {
+      items: itemsToSubmit,
+      payment_method: paymentMethod,
+      cash_tendered: cashTendered,
+      change: change,
+    };
     try {
         const newTransaction = await createTransaction(transactionData);
         setIsPaymentModalOpen(false);
@@ -74,5 +79,4 @@ function CashierPage() {
     </div>
   );
 }
-
 export default CashierPage;
