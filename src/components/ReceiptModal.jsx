@@ -1,4 +1,4 @@
-// LOKASI: src/components/ReceiptModal.jsx
+// LOKASI: src/components/ReceiptModal.jsx (KODE LENGKAP & FINAL)
 import React from 'react';
 import Modal from 'react-modal';
 import { format } from 'date-fns';
@@ -6,14 +6,25 @@ import { id } from 'date-fns/locale';
 import './ReceiptModal.scss';
 
 function ReceiptModal({ isOpen, onClose, transactionData }) {
-  if (!transactionData) { return null; }
-  const handlePrint = () => { window.print(); };
+  if (!transactionData) {
+    return null;
+  }
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Ambil Subtotal dan Diskon dari transactionData.
+  // Jika Subtotal tidak ada, hitung manual dari TotalAmount + Discount
+  const subtotal = transactionData.Subtotal || (transactionData.TotalAmount + transactionData.Discount);
+  const discount = transactionData.Discount || 0;
 
   return (
     <Modal isOpen={isOpen} onRequestClose={onClose} className="receipt-modal" overlayClassName="receipt-modal-overlay">
       <div id="receipt-content" className="receipt-content">
         <header className="receipt-header">
-          <h2>Struk Pembayaran</h2><p>KasirPintar</p><hr />
+          <h2>Struk Pembayaran</h2>
+          <p>KasirPintar</p>
+          <hr />
           <div className="receipt-details">
             <p><span>No. Invoice:</span> {transactionData.InvoiceNumber}</p>
             <p><span>Waktu:</span> {format(new Date(transactionData.CreatedAt), 'dd MMM yyyy, HH:mm', { locale: id })}</p>
@@ -22,7 +33,14 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
         </header>
         <main className="receipt-body">
           <table>
-            <thead><tr><th>Item</th><th>Jml</th><th>Harga</th><th>Subtotal</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Jml</th>
+                <th>Harga</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
             <tbody>
               {transactionData.Details?.map(detail => (
                 <tr key={detail.ID}>
@@ -38,9 +56,12 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
         <footer className="receipt-footer">
           <hr />
           <div className="receipt-summary">
-            <p><span>Metode Bayar:</span> {transactionData.PaymentMethod}</p>
+            <p><span>Subtotal:</span> Rp {subtotal.toLocaleString('id-ID')}</p>
+            {discount > 0 && (
+              <p><span>Diskon:</span> - Rp {discount.toLocaleString('id-ID')}</p>
+            )}
             <h3><span>Total:</span> Rp {(transactionData.TotalAmount || 0).toLocaleString('id-ID')}</h3>
-            {/* --- TAMPILAN BARU UNTUK DATA TUNAI --- */}
+            <p><span>Metode Bayar:</span> {transactionData.PaymentMethod}</p>
             {transactionData.PaymentMethod === 'Tunai' && (
               <>
                 <p><span>Uang Tunai:</span> Rp {(transactionData.CashTendered || 0).toLocaleString('id-ID')}</p>
@@ -59,4 +80,5 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
     </Modal>
   );
 }
+
 export default ReceiptModal;

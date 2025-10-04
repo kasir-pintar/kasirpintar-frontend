@@ -1,0 +1,73 @@
+// LOKASI: src/components/DiscountModal.scss (KODE LENGKAP & FINAL)
+.discount-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1001; // Pastikan di atas modal lain jika ada
+}
+
+.discount-modal {
+  width: 90%;
+  max-width: 400px;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  outline: none;
+  font-family: sans-serif;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .input-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+
+    label {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .discount-input-field {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1.2rem;
+      text-align: right;
+      width: 100%;
+    }
+  }
+
+  .actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+
+    button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    .button-primary { background-color: #007bff; color: white; }
+    .button-secondary { background-color: #6c757d; color: white; }
+  }
+
+  // Pinjam style error dari PaymentModal
+  .modal-error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 0.9em;
+  }
+}
