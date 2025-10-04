@@ -1,6 +1,9 @@
-// LOKASI: src/pages/Cashier/Cashier.jsx (FINAL DENGAN TOMBOL HISTORY)
+// LOKASI: src/pages/Cashier/Cashier.jsx (FINAL DENGAN HEADER BARU)
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // <-- 1. TAMBAHKAN 'Link' DI SINI
+import { useNavigate, Link } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 import { fetchMenus, createTransaction } from '../../services/cashier';
 import PaymentModal from '../../components/PaymentModal';
 import ReceiptModal from '../../components/ReceiptModal';
@@ -23,10 +26,38 @@ function CashierPage() {
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [discount, setDiscount] = useState(0);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [cashierName, setCashierName] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  // --- SEMUA FUNGSI LOGIKA ANDA TETAP SAMA ---
-  const loadMenus = async () => { try { setError(''); setLoading(true); const data = await fetchMenus(); setMenus(data || []); } catch (err) { setError('Gagal memuat data menu.'); } finally { setLoading(false); } };
-  useEffect(() => { loadMenus(); }, []);
+  const loadMenus = async () => {
+    try {
+      setError('');
+      setLoading(true);
+      const data = await fetchMenus();
+      setMenus(data || []);
+    } catch (err) {
+      setError('Gagal memuat data menu.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        setCashierName(decodedToken.name || 'Kasir');
+      } catch (e) {
+        console.error('Invalid token:', e);
+        setCashierName('Kasir');
+      }
+    }
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    loadMenus();
+    return () => clearInterval(timer);
+  }, []);
+
   const uniqueCategories = useMemo(() => { const categories = menus.map(menu => menu.Category).filter(Boolean); return ['Semua', ...new Set(categories)]; }, [menus]);
   const filteredMenus = useMemo(() => { return menus.filter(menu => { const matchesCategory = selectedCategory === 'Semua' || menu.Category === selectedCategory; const matchesSearch = menu.Name.toLowerCase().includes(searchTerm.toLowerCase()); return matchesCategory && matchesSearch; }); }, [menus, searchTerm, selectedCategory]);
   const handleLogout = () => { localStorage.removeItem('authToken'); navigate('/login'); };
@@ -58,15 +89,21 @@ function CashierPage() {
 
   return (
     <div className="cashier-layout">
-      {/* --- 2. PERUBAHAN DI DALAM HEADER --- */}
       <header className="cashier-header">
-        <h1>Halaman Kasir</h1>
-        <div className="header-actions">
-          {/* Berdasarkan App.jsx Anda, path-nya adalah /transactions */}
-          <Link to="/transactions" className="history-button">Riwayat Transaksi</Link>
-          <button onClick={handleLogout} className="logout-button">Logout</button>
+        <div className="header-info-left">
+          <h1>Halaman Kasir</h1>
+          <span className="cashier-name">Kasir: {cashierName}</span>
+        </div>
+        <div className="header-info-right">
+          <span className="realtime-clock">{format(currentTime, 'dd MMM yyyy, HH:mm:ss', { locale: id })}</span>
+          <div className="header-actions">
+            <Link to="/transactions" className="history-button">Riwayat Transaksi</Link>
+            <button onClick={handleLogout} className="logout-button">Logout</button>
+          </div>
         </div>
       </header>
+      
+      {/* TIDAK ADA LAGI cashier-info-bar di sini */}
       
       <main className="cashier-main-content">
         <section className="menu-section">

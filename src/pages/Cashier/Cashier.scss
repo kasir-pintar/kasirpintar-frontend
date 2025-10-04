@@ -1,4 +1,4 @@
-// LOKASI: src/pages/Cashier/Cashier.scss (VERSI FINAL & LENGKAP)
+// LOKASI: src/pages/Cashier/Cashier.scss (FINAL DENGAN HEADER BARU)
 .cashier-layout {
   display: flex;
   flex-direction: column;
@@ -11,21 +11,67 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  height: 60px;
+  padding: 10px 20px;
+  height: auto;
   border-bottom: 1px solid #dee2e6;
   flex-shrink: 0;
   background-color: #ffffff;
+  gap: 20px;
 
-  .logout-button {
-    padding: 8px 16px;
-    cursor: pointer;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 5px;
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .header-info-left {
+    .cashier-name {
+      font-size: 0.9em;
+      color: #6c757d;
+    }
+  }
+
+  .header-info-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+
+    .realtime-clock {
+      font-size: 0.9em;
+      font-weight: bold;
+      color: #343a40;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+
+      .history-button {
+        padding: 8px 12px;
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 0.8em;
+        transition: background-color 0.2s;
+        &:hover { background-color: #5a6268; }
+      }
+
+      .logout-button {
+        padding: 8px 12px;
+        cursor: pointer;
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.8em;
+      }
+    }
   }
 }
+
+// .cashier-info-bar Dihapus
 
 .cashier-main-content {
   display: flex;
@@ -55,23 +101,12 @@
   cursor: pointer;
   transition: box-shadow 0.2s, transform 0.2s;
   background-color: #ffffff;
-
   &:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
-
-  .menu-name {
-    font-weight: bold;
-    margin: 5px 0;
-  }
-
-  .menu-price,
-  .menu-stock {
-    margin: 5px 0;
-    font-size: 14px;
-    color: #555;
-  }
+  .menu-name { font-weight: bold; margin: 5px 0; }
+  .menu-price, .menu-stock { margin: 5px 0; font-size: 14px; color: #555; }
 }
 
 .cart-section {
@@ -83,101 +118,75 @@
   background-color: #ffffff;
 }
 
+.customer-display {
+  padding: 15px;
+  background-color: #e9f2ff;
+  border: 1px solid #b3d4ff;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  .customer-info {
+    .label { font-size: 0.9em; color: #6c757d; display: block; }
+    .name { font-weight: bold; font-size: 1.1em; }
+  }
+  .change-customer-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-weight: bold;
+    &:hover { text-decoration: underline; }
+  }
+}
+
 .cart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 2px solid #343a40;
   padding-bottom: 10px;
-
   .clear-cart-button {
     background: none;
     border: none;
     color: #007bff;
     cursor: pointer;
     font-size: 14px;
-
-    &:hover {
-      text-decoration: underline;
-    }
+    &:hover { text-decoration: underline; }
   }
 }
 
-.cart-items {
-  flex-grow: 1;
-  margin: 10px 0;
-  overflow-y: auto;
-}
-
-.cart-empty {
-  color: #888;
-  text-align: center;
-  margin-top: 20px;
-}
-
+.cart-items { flex-grow: 1; margin: 10px 0; overflow-y: auto; }
+.cart-empty { color: #888; text-align: center; margin-top: 20px; }
 .cart-item {
   display: flex;
   flex-direction: column;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
-
   .item-info {
     display: flex;
     justify-content: space-between;
-
-    .item-name {
-      font-weight: bold;
-    }
-
-    .item-price {
-      color: #555;
-      font-size: 14px;
-    }
+    .item-name { font-weight: bold; }
+    .item-price { color: #555; font-size: 14px; }
   }
-
   .item-controls {
     display: flex;
     align-items: center;
     margin-top: 8px;
-
-    .control-button {
-      width: 25px;
-      height: 25px;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .item-quantity {
-      padding: 0 10px;
-      font-weight: bold;
-    }
-
-    .remove-button {
-      margin-left: auto;
-      background: none;
-      border: none;
-      color: #dc3545;
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 5px;
-    }
+    .control-button { width: 25px; height: 25px; border: 1px solid #ccc; background-color: #f1f1f1; cursor: pointer; font-weight: bold; }
+    .item-quantity { padding: 0 10px; font-weight: bold; }
+    .remove-button { margin-left: auto; background: none; border: none; color: #dc3545; font-size: 20px; cursor: pointer; padding: 0 5px; }
   }
 }
 
-.cart-summary {
-  flex-shrink: 0;
-  padding-top: 10px;
-  border-top: 1px solid #ccc;
-}
-
-.cart-total {
-  display: flex;
-  justify-content: space-between;
+.cart-summary { flex-shrink: 0; padding-top: 10px; border-top: 1px solid #ccc; }
+.cart-total { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 1em; }
+.cart-total.discount-row { color: #dc3545; font-weight: normal; }
+.cart-total.grand-total { font-size: 1.2em; border-top: 1px solid #ccc; padding-top: 10px; }
+.discount-action {
   margin-bottom: 15px;
-  font-weight: bold;
-  font-size: 1.2em;
+  .discount-button { width: 100%; padding: 8px; font-size: 0.9em; background-color: #fff; color: #007bff; border: 1px solid #007bff; border-radius: 5px; cursor: pointer; &:hover { background-color: #e9f2ff; } }
 }
 
 .process-button {
@@ -190,46 +199,27 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
-
-  &:hover {
-    background-color: #218838;
-  }
+  &:hover { background-color: #218838; }
 }
 
-.error-message {
-  color: #d93025;
-}
-
+.error-message { color: #d93025; }
 .filter-controls {
   margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
-
 .search-input-group {
-  input {
-    width: 95%;
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
+  input { width: 95%; padding: 10px; font-size: 1rem; border: 1px solid #ccc; border-radius: 5px; }
 }
-
 .category-tabs {
   display: flex;
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 5px;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
+  &::-webkit-scrollbar { display: none; }
   -ms-overflow-style: none;
   scrollbar-width: none;
-
   .category-tab {
     padding: 8px 16px;
     border: 1px solid #007bff;
@@ -239,134 +229,26 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s;
-
-    &:hover {
-      background-color: #e9f2ff;
-    }
-
-    &.active {
-      background-color: #007bff;
-      color: #fff;
-    }
+    &:hover { background-color: #e9f2ff; }
+    &.active { background-color: #007bff; color: #fff; }
   }
 }
 
 @media (max-width: 768px) {
-  .cashier-main-content {
+  .cashier-header {
     flex-direction: column;
-    overflow-y: auto;
-  }
-
-  .menu-section {
-    border-right: none;
-    border-bottom: 1px solid #dee2e6;
-    overflow-y: visible;
-    flex-shrink: 0;
-  }
-
-  .cart-section {
-    min-width: 100%;
-    overflow-y: visible;
-    border-left: none;
-    flex-shrink: 0;
-  }
-
-  .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  }
-}
-
-.cart-total.discount-row {
-  color: #dc3545;
-  font-size: 1em;
-  font-weight: normal;
-}
-
-.cart-total.grand-total {
-  font-size: 1.2em;
-  font-weight: bold;
-  border-top: 1px solid #ccc;
-  padding-top: 10px;
-}
-
-.discount-action {
-  margin-bottom: 15px;
-
-  .discount-button {
-    width: 100%;
-    padding: 8px;
-    font-size: 0.9em;
-    background-color: #fff;
-    color: #007bff;
-    border: 1px solid #007bff;
-    border-radius: 5px;
-    cursor: pointer;
-
-    &:hover {
-      background-color: #e9f2ff;
-    }
-  }
-}
-
-/* LOKASI: src/pages/Cashier/Cashier.scss (TAMBAHKAN DI AKHIR) */
-
-.customer-display {
-  padding: 15px;
-  background-color: #e9f2ff;
-  border: 1px solid #b3d4ff;
-  border-radius: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-
-  .customer-info {
-    .label {
-      font-size: 0.9em;
-      color: #6c757d;
-      display: block;
-    }
-
-    .name {
-      font-weight: bold;
-      font-size: 1.1em;
+    align-items: flex-start;
+    height: auto;
+    gap: 10px;
+    padding: 15px;
+    .header-info-right {
+      width: 100%;
+      align-items: flex-start;
     }
   }
 
-  .change-customer-button {
-    background: none;
-    border: none;
-    color: #007bff;
-    cursor: pointer;
-    font-weight: bold;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-}
-
-/* LOKASI: src/pages/Cashier/Cashier.scss (TAMBAHKAN DI AKHIR) */
-
-.cashier-header {
-  .header-actions {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-
-    .history-button {
-      padding: 8px 16px;
-      background-color: #6c757d;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: normal;
-      font-size: 14px;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: #5a6268;
-      }
-    }
-  }
+  .cashier-main-content { flex-direction: column; overflow-y: auto; }
+  .menu-section { border-right: none; border-bottom: 1px solid #dee2e6; overflow-y: visible; flex-shrink: 0; }
+  .cart-section { min-width: 100%; overflow-y: visible; border-left: none; flex-shrink: 0; }
+  .menu-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }
