@@ -1,4 +1,4 @@
-// LOKASI: src/App.jsx
+// LOKASI: src/App.jsx (FINAL DENGAN HAK AKSES KASIR)
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -33,9 +33,10 @@ function App() {
 
         <Route path="/cashier" element={<PrivateRoute allowedRoles={['cashier', 'admin', 'manager']}><CashierPage /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute allowedRoles={['admin', 'manager']}><DashboardPage /></PrivateRoute>} />
-        <Route path="/transactions" element={<PrivateRoute allowedRoles={['admin', 'manager']}><TransactionHistoryPage /></PrivateRoute>} />
+        
+        {/* --- PERUBAHAN DI BARIS INI --- */}
+        <Route path="/transactions" element={<PrivateRoute allowedRoles={['admin', 'manager', 'cashier']}><TransactionHistoryPage /></PrivateRoute>} />
 
-        {/* --- RUTE BARU DI BAWAH INI --- */}
         <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}><UserManagementPage /></PrivateRoute>} />
 
         <Route path="*" element={<Navigate to="/" />} />

@@ -345,3 +345,28 @@
     }
   }
 }
+
+/* LOKASI: src/pages/Cashier/Cashier.scss (TAMBAHKAN DI AKHIR) */
+
+.cashier-header {
+  .header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+
+    .history-button {
+      padding: 8px 16px;
+      background-color: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: normal;
+      font-size: 14px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #5a6268;
+      }
+    }
+  }
+}
