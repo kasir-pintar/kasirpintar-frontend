@@ -1,4 +1,4 @@
-// LOKASI: src/App.jsx (FINAL DENGAN HAK AKSES KASIR)
+// LOKASI: src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import LandingPage from '../pages/Landing/Landing';
 import LoginPage from '../pages/Login/Login';
 import CashierPage from '../pages/Cashier/Cashier';
-import DashboardPage from '../pages/Dashboard/Dashboard';
+import DashboardIndexPage from '../pages/Dashboard/index'; // <-- IMPORT BARU
 import TransactionHistoryPage from '../pages/TransactionHistory/TransactionHistory';
 import UserManagementPage from '../pages/UserManagement/UserManagement';
 
@@ -32,11 +32,11 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
 
         <Route path="/cashier" element={<PrivateRoute allowedRoles={['cashier', 'admin', 'manager']}><CashierPage /></PrivateRoute>} />
-        <Route path="/dashboard" element={<PrivateRoute allowedRoles={['admin', 'manager']}><DashboardPage /></PrivateRoute>} />
         
-        {/* --- PERUBAHAN DI BARIS INI --- */}
+        {/* --- RUTE INI SEKARANG MENGARAH KE KOMPONEN PEMANDU --- */}
+        <Route path="/dashboard" element={<PrivateRoute allowedRoles={['admin', 'manager']}><DashboardIndexPage /></PrivateRoute>} />
+        
         <Route path="/transactions" element={<PrivateRoute allowedRoles={['admin', 'manager', 'cashier']}><TransactionHistoryPage /></PrivateRoute>} />
-
         <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}><UserManagementPage /></PrivateRoute>} />
 
         <Route path="*" element={<Navigate to="/" />} />
