@@ -15,6 +15,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 
   .header-greeting {
     h1 {
@@ -68,7 +71,7 @@
 
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
 
@@ -81,24 +84,39 @@
     
     &:nth-child(2) { border-left-color: #28a745; }
     &:nth-child(3) { border-left-color: #ffc107; }
+    &:nth-child(4) { border-left-color: #6f42c1; }
+    &:nth-child(5) { border-left-color: #dc3545; }
 
     h3 { margin: 0; font-size: 1em; color: #6c757d; text-transform: uppercase; }
-    p { margin: 10px 0 0; font-size: 2.2em; font-weight: bold; color: #343a40; }
+    p { 
+      margin: 10px 0 0; 
+      font-size: clamp(1.5em, 5vw, 2.2em);
+      font-weight: bold; 
+      color: #343a40;
+      word-break: break-all;
+      line-height: 1.2;
+    }
   }
 }
 
 .dashboard-main-content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1.5fr;
   gap: 30px;
 
-  .chart-container, .top-products-container {
+  .chart-container, .pie-chart-container, .top-products-container {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 
+  .secondary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  
   h3 {
     margin-top: 0;
     border-bottom: 1px solid #eee;
@@ -122,8 +140,8 @@
   }
 }
 
-// Aturan responsive
-@media (max-width: 992px) {
+/* --- ATURAN RESPONSIVE BARU --- */
+@media (max-width: 1200px) {
   .dashboard-main-content {
     grid-template-columns: 1fr;
   }
@@ -132,14 +150,35 @@
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    position: static;
+  }
+  .header-greeting {
+    text-align: center;
   }
   .header-controls {
-    width: 100%;
     flex-direction: column;
     align-items: stretch;
   }
-  .logout-button { text-align: center; }
-  .dashboard-container { padding: 15px; }
-  .card p { font-size: 1.8em; }
+  .logout-button { 
+    text-align: center; 
+  }
+  .date-filter {
+    justify-content: center;
+  }
+  .dashboard-container { 
+    padding: 15px; 
+  }
+  .card p {
+    font-size: clamp(1.5em, 7vw, 1.8em);
+  }
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
 }

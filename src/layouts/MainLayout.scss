@@ -1,0 +1,56 @@
+// LOKASI: src/layouts/MainLayout.scss
+
+.main-layout {
+  display: flex;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  flex-grow: 1;
+  padding-left: 250px; // Beri ruang untuk sidebar di desktop
+  width: 100%;
+  transition: padding-left 0.3s ease-in-out;
+}
+
+.topbar {
+  display: none; // Sembunyikan di desktop
+}
+
+.page-content {
+  width: 100%;
+}
+
+@media (max-width: 992px) {
+  .content-wrapper {
+    padding-left: 0; // Hilangkan padding saat sidebar tersembunyi
+  }
+  
+  .topbar {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    height: 60px;
+    padding: 0 20px;
+    border-bottom: 1px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #343a40;
+    }
+
+    .topbar-title {
+      font-weight: bold;
+      margin-left: 20px;
+      font-size: 1.2rem;
+    }
+  }
+
+  // BLOK KOSONG .page-content SUDAH DIHAPUS DARI SINI
+}

@@ -1,15 +1,15 @@
 // LOKASI: src/pages/Dashboard/ManagerDashboard.jsx
-import React, { useState, useEffect, useMemo } from 'react'; // <-- Tambahkan useMemo di import
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom'; // Pastikan useNavigate di-import
 import { getDashboardSummary } from '../../services/dashboard';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { Bar, Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; // Pastikan jwtDecode di-import
 import './ManagerDashboard.scss';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 function ManagerDashboardPage() {
   const navigate = useNavigate();
@@ -48,38 +48,55 @@ function ManagerDashboardPage() {
     };
     fetchSummary();
   }, [startDate, endDate]);
-  
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    navigate('/login');
-  };
 
-  const chartOptions = {
+  const barChartOptions = {
     responsive: true,
     plugins: {
-      legend: { position: 'top' },
+      legend: { display: false },
       title: { display: true, text: 'Grafik Pendapatan per Hari' },
     },
   };
 
-  // --- PERBAIKAN UTAMA: GUNAKAN useMemo ---
-  const chartData = useMemo(() => {
+  const barChartData = useMemo(() => {
     return {
       labels: (summary?.sales_by_day || []).map(sale => new Date(sale.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })),
-      datasets: [
-        {
-          label: 'Pendapatan (Rp)',
-          data: (summary?.sales_by_day || []).map(sale => sale.total),
-          backgroundColor: 'rgba(54, 162, 235, 0.6)',
-        },
-      ],
+      datasets: [{
+        label: 'Pendapatan (Rp)',
+        data: (summary?.sales_by_day || []).map(sale => sale.total),
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1,
+      }],
     };
-  }, [summary]); // Hanya hitung ulang jika 'summary' berubah
+  }, [summary]);
+  
+  const pieChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: true, text: 'Komposisi Metode Pembayaran' },
+    },
+  };
+
+  const pieChartData = useMemo(() => {
+    const labels = (summary?.payment_method_composition || []).map(p => p.payment_method);
+    const data = (summary?.payment_method_composition || []).map(p => p.count);
+    return {
+      labels,
+      datasets: [{
+        label: 'Jumlah Transaksi',
+        data,
+        backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(75, 192, 192, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(255, 99, 132, 0.6)', 'rgba(153, 102, 255, 0.6)'],
+        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(255, 99, 132, 1)', 'rgba(153, 102, 255, 1)'],
+        borderWidth: 1,
+      }],
+    };
+  }, [summary]);
 
   const formatDateRange = () => {
     const start = startDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
     const end = endDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-    if (start === end) return start;
+    if (startDate.toDateString() === endDate.toDateString()) return start;
     return `${start} - ${end}`;
   };
 
@@ -98,43 +115,37 @@ function ManagerDashboardPage() {
             <span>sampai</span>
             <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} dateFormat="dd/MM/yyyy" className="date-input"/>
           </div>
-          <button onClick={handleLogout} className="logout-button">Logout</button>
         </div>
       </header>
+
       <main className="dashboard-container">
         {loading ? <p>Memuat data...</p> : (
           <>
             <div className="summary-cards">
-              <div className="card">
-                <h3>Total Pendapatan</h3>
-                <p>Rp {(summary?.total_revenue || 0).toLocaleString('id-ID')}</p>
-              </div>
-              <div className="card">
-                <h3>Total Transaksi</h3>
-                <p>{summary?.total_transactions || 0}</p>
-              </div>
-              <div className="card">
-                <h3>Pelanggan Baru</h3>
-                <p>{summary?.new_customers || 0}</p>
-              </div>
+              <div className="card"><h3>Total Pendapatan</h3><p>Rp {(summary?.total_revenue || 0).toLocaleString('id-ID')}</p></div>
+              <div className="card"><h3>Total Transaksi</h3><p>{summary?.total_transactions || 0}</p></div>
+              <div className="card"><h3>Pelanggan Baru</h3><p>{summary?.new_customers || 0}</p></div>
+              <div className="card"><h3>Avg. per Transaksi</h3><p>Rp {(summary?.avg_per_transaction || 0).toLocaleString('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</p></div>
+              <div className="card"><h3>Total Diskon</h3><p>Rp {(summary?.total_discount || 0).toLocaleString('id-ID')}</p></div>
             </div>
             
             <div className="dashboard-main-content">
               <div className="chart-container">
                 <h3>Grafik Pendapatan</h3>
-                <Bar options={chartOptions} data={chartData} />
+                <Bar options={barChartOptions} data={barChartData} />
               </div>
-              <div className="top-products-container">
-                <h3>Produk Terlaris ({formatDateRange()})</h3>
-                <ul>
-                  {(summary?.top_products || []).map((product, index) => (
-                    <li key={index}>
-                      <span className="product-name">{product.name}</span>
-                      <span className="product-quantity">{product.total_quantity} terjual</span>
-                    </li>
-                  ))}
-                  {summary?.top_products?.length === 0 && <p className="no-data">Belum ada data penjualan produk pada periode ini.</p>}
-                </ul>
+              <div className="secondary-content">
+                <div className="pie-chart-container">
+                  <h3>Metode Pembayaran</h3>
+                  <Pie options={pieChartOptions} data={pieChartData} />
+                </div>
+                <div className="top-products-container">
+                  <h3>Produk Terlaris ({formatDateRange()})</h3>
+                  <ul>
+                    {(summary?.top_products || []).map((product, index) => (<li key={index}><span className="product-name">{product.name}</span><span className="product-quantity">{product.total_quantity} terjual</span></li>))}
+                    {summary?.top_products?.length === 0 && <p className="no-data">Belum ada data.</p>}
+                  </ul>
+                </div>
               </div>
             </div>
           </>
