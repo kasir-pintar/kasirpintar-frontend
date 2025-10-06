@@ -1,0 +1,120 @@
+// LOKASI: src/pages/AnalyticsPage/AnalyticsPage.scss
+.analytics-container {
+  padding: 30px;
+}
+
+.analytics-header {
+  margin-bottom: 20px;
+  h1 {
+    margin: 0;
+  }
+  p {
+    color: #6c757d;
+    font-size: 1.1em;
+  }
+}
+
+.forecast-panel {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+
+  h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  > p {
+    color: #6c757d;
+  }
+
+  .forecast-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+
+    select {
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      flex-grow: 1;
+      min-width: 200px;
+      
+      &.placeholder {
+        color: #6c757d;
+      }
+      option {
+        color: #000;
+      }
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+
+      &:hover { background-color: #218838; }
+      &:disabled { background-color: #ccc; cursor: not-allowed; }
+    }
+  }
+
+  .forecast-chart-container {
+    margin-top: 25px;
+  }
+
+  .error-message.small {
+    font-size: 0.9em;
+    padding: 10px;
+    margin-top: 15px;
+    text-align: left;
+  }
+  
+  .prediction-explanation {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2em;
+      color: #343a40;
+      margin-bottom: 15px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+      li {
+        margin-bottom: 12px;
+        line-height: 1.6;
+        color: #495057;
+        strong {
+          color: #212529;
+        }
+      }
+    }
+    
+    .disclaimer {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #6c757d;
+      background-color: #f8f9fa;
+      border-left: 4px solid #ffc107;
+      padding: 10px 15px;
+    }
+  }
+}

@@ -8,6 +8,7 @@ import LoginPage from '../pages/Login/Login';
 import CashierPage from '../pages/Cashier/Cashier';
 import DashboardIndexPage from '../pages/Dashboard/index';
 import TransactionHistoryPage from '../pages/TransactionHistory/TransactionHistory';
+import AnalyticsPage from '../pages/AnalyticsPage/AnalyticsPage';
 import UserManagementPage from '../pages/UserManagement/UserManagement';
 import MainLayout from '../layouts/MainLayout'; // <-- IMPORT BARU
 
@@ -36,6 +37,7 @@ function App() {
         <Route element={<PrivateRoute allowedRoles={['admin', 'manager']}><MainLayout /></PrivateRoute>}>
           <Route path="/dashboard" element={<DashboardIndexPage />} />
           <Route path="/transactions" element={<TransactionHistoryPage />} />
+           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
         
         <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}><UserManagementPage /></PrivateRoute>} />
