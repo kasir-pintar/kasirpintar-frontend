@@ -1,11 +1,13 @@
-// LOKASI: src/pages/AnalyticsPage/AnalyticsPage.jsx
+// LOKASI: src/pages/AnalyticsPage/AnalyticsPage.jsx (VERSI STABIL & LENGKAP)
 import React, { useState, useEffect, useMemo } from 'react';
 import { getAllMenus } from '../../services/menu';
 import { getSalesForecast } from '../../services/forecast';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import './AnalyticsPage.scss';
-import { FaInfoCircle } from 'react-icons/fa'; // Import ikon
+import { FaInfoCircle } from 'react-icons/fa';
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function AnalyticsPage() {
   const [menus, setMenus] = useState([]);
@@ -36,15 +38,24 @@ function AnalyticsPage() {
       setForecastLoading(true);
       setForecastError('');
       setForecastData(null);
-      const prediction = await getSalesForecast(selectedProduct, 7);
-      setForecastData(prediction);
+      const predictionResponse = await getSalesForecast(selectedProduct, 7);
+      
+      if (Array.isArray(predictionResponse)) {
+        setForecastData(predictionResponse);
+      } else {
+        setForecastData(null);
+        setForecastError(predictionResponse.message || "Terjadi kesalahan saat membuat prediksi.");
+      }
+
     } catch (err) {
-      setForecastError(err.toString());
+      setForecastData(null);
+      const errorMessage = err.response?.data?.message || err.toString();
+      setForecastError(errorMessage);
     } finally {
       setForecastLoading(false);
     }
   };
-
+  
   const forecastChartOptions = {
     responsive: true,
     plugins: {
@@ -54,23 +65,19 @@ function AnalyticsPage() {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: {
-          stepSize: 1
-        },
-        title: {
-          display: true,
-          text: 'Estimasi Jumlah Unit Terjual'
-        }
+        ticks: { stepSize: 1 },
+        title: { display: true, text: 'Estimasi Jumlah Unit Terjual' }
       }
     }
   };
 
   const forecastChartData = useMemo(() => {
+    const data = Array.isArray(forecastData) ? forecastData : [];
     return {
-      labels: (forecastData || []).map(pred => new Date(pred.ds + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })),
+      labels: data.map(pred => new Date(pred.ds + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short' })),
       datasets: [{
         label: 'Prediksi Unit Terjual',
-        data: (forecastData || []).map(pred => pred.yhat),
+        data: data.map(pred => pred.yhat),
         backgroundColor: 'rgba(40, 167, 69, 0.6)',
         borderColor: 'rgba(40, 167, 69, 1)',
         borderWidth: 1,
@@ -102,23 +109,23 @@ function AnalyticsPage() {
             {forecastLoading ? 'Memprediksi...' : 'Buat Prediksi'}
           </button>
         </div>
+        
         {forecastError && <p className="error-message small">{forecastError}</p>}
-        {forecastData && (
+        
+        {forecastData && Array.isArray(forecastData) && !forecastLoading && (
           <>
             <div className="forecast-chart-container">
               <Bar options={forecastChartOptions} data={forecastChartData} />
             </div>
+            {/* Menggunakan format penjelasan naratif yang Anda inginkan */}
             <div className="prediction-explanation">
-              <h4><FaInfoCircle /> Memahami Hasil Prediksi</h4>
-              <ul>
-                <li><strong>What (Apa):</strong> Grafik di atas adalah <strong>estimasi jumlah unit</strong> dari produk <strong>"{selectedProduct}"</strong> yang kemungkinan akan terjual setiap hari selama 7 hari ke depan.</li>
-                <li><strong>Why (Mengapa):</strong> Prediksi ini dibuat dengan menganalisis <strong>pola penjualan historis</strong> produk ini. Model mempelajari tren harian (misalnya, apakah penjualan cenderung naik di akhir pekan) dan pola keseluruhan dari data yang ada di database Anda.</li>
-                <li><strong>When (Kapan):</strong> Angka prediksi ini berlaku untuk <strong>7 hari ke depan</strong>, dimulai dari besok.</li>
-                <li><strong>Who (Siapa):</strong> Hasil ini ditujukan untuk <strong>Manajer Outlet</strong> sebagai alat bantu pengambilan keputusan.</li>
-                <li><strong>Where (Di mana):</strong> Analisis ini berlaku untuk data penjualan di **outlet Anda saat ini**.</li>
-                <li><strong>How (Bagaimana):</strong> Anda dapat menggunakan informasi ini untuk merencanakan <strong>jumlah stok bahan baku</strong> yang perlu disiapkan, mengatur <strong>jadwal staf</strong> di hari yang diprediksi ramai, atau merancang **strategi promosi** (misalnya, diskon di hari yang diprediksi sepi).</li>
-              </ul>
-              <p className="disclaimer"><strong>Disclaimer:</strong> Ini adalah prediksi matematis dan bukan jaminan. Angka sebenarnya dapat bervariasi tergantung pada faktor-faktor tak terduga seperti cuaca, acara khusus, dll.</p>
+                <h4><FaInfoCircle /> Memahami Hasil Prediksi</h4>
+                <p className="explanation-summary">
+                    Grafik di atas adalah <strong>estimasi jumlah unit</strong> dari produk <strong>"{selectedProduct}"</strong> yang kemungkinan akan terjual setiap hari selama 7 hari ke depan. Prediksi ini dibuat dengan menganalisis <strong>pola penjualan historis</strong> di outlet Anda dan ditujukan bagi <strong>Manajer Outlet</strong> sebagai alat bantu untuk merencanakan <strong>jumlah stok bahan baku</strong>, mengatur <strong>jadwal staf</strong>, atau merancang <strong>strategi promosi</strong>. Model ini mempelajari tren mingguan, misalnya apakah penjualan cenderung naik atau turun di akhir pekan.
+                </p>
+                <p className="disclaimer">
+                    <strong>Disclaimer:</strong> Ini adalah prediksi matematis dan bukan jaminan. Angka sebenarnya dapat bervariasi tergantung pada faktor-faktor tak terduga seperti cuaca, acara khusus, dll.
+                </p>
             </div>
           </>
         )}
