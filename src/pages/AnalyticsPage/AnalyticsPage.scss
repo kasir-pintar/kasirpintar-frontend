@@ -14,7 +14,6 @@
   }
 }
 
-// Panel Prediksi
 .forecast-panel {
   background-color: #fff;
   padding: 25px;
@@ -81,9 +80,116 @@
     margin-top: 15px;
     text-align: left;
   }
+
+  .prediction-explanation {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+
+    h4, h5 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #343a40;
+      margin-bottom: 10px;
+    }
+    h4 { font-size: 1.2em; }
+    h5 { font-size: 1.1em; margin-top: 20px; }
+
+    .explanation-summary {
+      line-height: 1.6;
+      color: #495057;
+      margin-bottom: 25px;
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      border-left: 4px solid #007bff;
+    }
+
+    .daily-breakdown-table {
+      overflow-x: auto;
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+
+        th, td {
+          padding: 12px 15px;
+          /* --- PERUBAHAN UTAMA DI SINI --- */
+          text-align: center; 
+          border-bottom: 1px solid #dee2e6;
+        }
+
+        thead th {
+          background-color: #f8f9fa;
+          font-weight: 600;
+          color: #495057;
+        }
+
+        tbody tr:nth-of-type(even) {
+          background-color: #f8f9fa;
+        }
+
+        td {
+          vertical-align: middle;
+          
+          strong {
+            display: block;
+            font-size: 1.1em;
+          }
+
+          small {
+            color: #6c757d;
+          }
+
+          &.prediction-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #28a745;
+          }
+
+          &.explanation-details {
+            ul {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+              font-size: 0.9em;
+              /* Membuat item list rata kiri di dalam sel yang rata tengah */
+              display: inline-block;
+              text-align: left;
+            }
+            li {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 2px 0;
+              .icon {
+                font-size: 0.8em;
+                flex-shrink: 0;
+                &.trend { color: #6c757d; }
+                &.positive { color: #155724; }
+                &.negative { color: #721c24; }
+              }
+              &.positive { color: #155724; }
+              &.negative { color: #721c24; }
+            }
+          }
+        }
+      }
+    }
+
+    .disclaimer {
+      margin-top: 25px;
+      font-size: 0.9em;
+      color: #6c757d;
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 10px 15px;
+    }
+  }
 }
 
-// Panel Analisis Keranjang Belanja
 .basket-analysis-panel {
   background-color: #fff;
   padding: 25px;

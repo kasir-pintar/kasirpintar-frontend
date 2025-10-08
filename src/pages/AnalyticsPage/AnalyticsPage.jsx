@@ -11,14 +11,11 @@ import { FaInfoCircle, FaArrowUp, FaArrowDown, FaEquals, FaShoppingCart } from '
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function AnalyticsPage() {
-  // State untuk Prediksi Penjualan
   const [menus, setMenus] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(''); 
   const [forecastData, setForecastData] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [forecastError, setForecastError] = useState('');
-
-  // State untuk Analisis Keranjang Belanja
   const [basketData, setBasketData] = useState(null);
   const [basketLoading, setBasketLoading] = useState(false);
   const [basketError, setBasketError] = useState('');
@@ -116,7 +113,6 @@ function AnalyticsPage() {
         <p>Gunakan data historis untuk mendapatkan wawasan bisnis di masa depan.</p>
       </div>
 
-      {/* Panel Prediksi Penjualan */}
       <div className="forecast-panel card">
         <h3>Prediksi Penjualan Produk</h3>
         <p>Pilih produk untuk melihat estimasi penjualan 7 hari ke depan.</p>
@@ -152,32 +148,49 @@ function AnalyticsPage() {
               </p>
               
               <h5>Rincian Prediksi per Hari</h5>
-              <div className="daily-breakdown">
-                {forecastData.map(day => (
-                  <div key={day.ds} className="day-card">
-                    <div className="day-header">
-                      <span className="date">{new Date(day.ds + 'T00:00:00').toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}</span>
-                      <span className="day-name">{getDayName(day.ds)}</span>
-                    </div>
-                    <div className="prediction-value">{day.yhat} <span>unit</span></div>
-                    <div className="explanation-details">
-                      <p>Mengapa {day.yhat} unit?</p>
-                      <ul>
-                        <li>
-                          <FaEquals className="icon trend" />
-                          <span>Tren penjualan dasar sekitar <strong>{(day.trend || 0).toFixed(1)}</strong> unit.</span>
-                        </li>
-                        <li className={(day.weekly || 0) >= 0 ? 'positive' : 'negative'}>
-                          {(day.weekly || 0) >= 0 ? <FaArrowUp className="icon positive" /> : <FaArrowDown className="icon negative" />}
-                          <span>
-                            Dipengaruhi efek hari <strong>{getDayName(day.ds)}</strong> sebesar <strong>{(day.weekly || 0) > 0 ? '+' : ''}{(day.weekly || 0).toFixed(1)}</strong> unit.
-                          </span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                ))}
+              
+              {/* --- PERUBAHAN DARI DIV KE TABLE --- */}
+              <div className="daily-breakdown-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tanggal</th>
+                      <th>Prediksi (Unit)</th>
+                      <th>Komponen Analisis ("Mengapa?")</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {forecastData.map(day => (
+                      <tr key={day.ds}>
+                        <td>
+                          <strong>{getDayName(day.ds)}</strong>
+                          <br />
+                          <small>{new Date(day.ds + 'T00:00:00').toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}</small>
+                        </td>
+                        <td className="prediction-value">
+                          {day.yhat}
+                        </td>
+                        <td className="explanation-details">
+                          <ul>
+                            <li>
+                              <FaEquals className="icon trend" />
+                              <span>Tren Dasar: <strong>{(day.trend || 0).toFixed(1)}</strong></span>
+                            </li>
+                            <li className={(day.weekly || 0) >= 0 ? 'positive' : 'negative'}>
+                              {(day.weekly || 0) >= 0 ? <FaArrowUp className="icon positive" /> : <FaArrowDown className="icon negative" />}
+                              <span>
+                                Efek Hari: <strong>{(day.weekly || 0) > 0 ? '+' : ''}{(day.weekly || 0).toFixed(1)}</strong>
+                              </span>
+                            </li>
+                          </ul>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
+              {/* --- AKHIR PERUBAHAN --- */}
+
               <p className="disclaimer">
                 <strong>Disclaimer:</strong> Ini adalah prediksi matematis dan bukan jaminan. Angka sebenarnya dapat bervariasi.
               </p>
@@ -186,7 +199,6 @@ function AnalyticsPage() {
         )}
       </div>
 
-      {/* Panel Analisis Keranjang Belanja */}
       <div className="basket-analysis-panel card">
         <h3><FaShoppingCart /> Analitik Keranjang Belanja</h3>
         <p>Temukan pasangan produk yang paling sering dibeli bersama oleh pelanggan untuk membuat strategi bundling atau promosi.</p>
