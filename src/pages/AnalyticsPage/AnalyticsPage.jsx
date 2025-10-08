@@ -23,7 +23,6 @@ function AnalyticsPage() {
   const [basketLoading, setBasketLoading] = useState(false);
   const [basketError, setBasketError] = useState('');
 
-  // Mengambil daftar menu saat komponen dimuat
   useEffect(() => {
     const fetchMenus = async () => {
       try {
@@ -31,13 +30,12 @@ function AnalyticsPage() {
         setMenus(menuData || []);
       } catch (err) {
         console.error("Gagal memuat daftar menu:", err);
-        setForecastError("Gagal memuat daftar menu."); // Tampilkan error di panel prediksi
+        setForecastError("Gagal memuat daftar menu.");
       }
     };
     fetchMenus();
   }, []);
 
-  // Fungsi untuk menangani permintaan prediksi penjualan
   const handleGetForecast = async () => {
     if (!selectedProduct) {
       setForecastError("Silakan pilih produk terlebih dahulu.");
@@ -55,7 +53,6 @@ function AnalyticsPage() {
         setForecastData(null);
         setForecastError(predictionResponse.message || "Terjadi kesalahan saat membuat prediksi.");
       }
-
     } catch (err) {
       setForecastData(null);
       const errorMessage = err.response?.data?.message || err.toString();
@@ -64,8 +61,7 @@ function AnalyticsPage() {
       setForecastLoading(false);
     }
   };
-
-  // Fungsi untuk menangani permintaan analisis keranjang belanja
+  
   const handleGetBasketAnalysis = async () => {
     try {
       setBasketLoading(true);
@@ -80,7 +76,10 @@ function AnalyticsPage() {
     }
   };
 
-  // Konfigurasi untuk grafik prediksi
+  const getDayName = (dateString) => {
+    return new Date(dateString + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'long' });
+  };
+  
   const forecastChartOptions = {
     responsive: true,
     plugins: {
@@ -120,11 +119,14 @@ function AnalyticsPage() {
       {/* Panel Prediksi Penjualan */}
       <div className="forecast-panel card">
         <h3>Prediksi Penjualan Produk</h3>
-        <p>Pilih produk untuk melihat estimasi penjualan 7 hari ke depan berdasarkan data historis.</p>
+        <p>Pilih produk untuk melihat estimasi penjualan 7 hari ke depan.</p>
         <div className="forecast-controls">
           <select 
             value={selectedProduct} 
-            onChange={(e) => setSelectedProduct(e.target.value)}
+            onChange={(e) => {
+              setSelectedProduct(e.target.value);
+              setForecastData(null); 
+            }}
             disabled={menus.length === 0}
             className={!selectedProduct ? 'placeholder' : ''}
           >
@@ -139,9 +141,48 @@ function AnalyticsPage() {
         {forecastError && <p className="error-message small">{forecastError}</p>}
         
         {forecastData && Array.isArray(forecastData) && !forecastLoading && (
-          <div className="forecast-chart-container">
-            <Bar options={forecastChartOptions} data={forecastChartData} />
-          </div>
+          <>
+            <div className="forecast-chart-container">
+              <Bar options={forecastChartOptions} data={forecastChartData} />
+            </div>
+            <div className="prediction-explanation">
+              <h4><FaInfoCircle /> Memahami Hasil Prediksi</h4>
+              <p className="explanation-summary">
+                Grafik di atas adalah <strong>estimasi jumlah unit</strong> dari produk <strong>"{selectedProduct}"</strong> yang kemungkinan akan terjual setiap hari. Prediksi ini dibuat dengan menganalisis <strong>pola penjualan historis</strong> di outlet Anda dan ditujukan bagi <strong>Manajer</strong> sebagai alat bantu merencanakan stok dan jadwal staf.
+              </p>
+              
+              <h5>Rincian Prediksi per Hari</h5>
+              <div className="daily-breakdown">
+                {forecastData.map(day => (
+                  <div key={day.ds} className="day-card">
+                    <div className="day-header">
+                      <span className="date">{new Date(day.ds + 'T00:00:00').toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}</span>
+                      <span className="day-name">{getDayName(day.ds)}</span>
+                    </div>
+                    <div className="prediction-value">{day.yhat} <span>unit</span></div>
+                    <div className="explanation-details">
+                      <p>Mengapa {day.yhat} unit?</p>
+                      <ul>
+                        <li>
+                          <FaEquals className="icon trend" />
+                          <span>Tren penjualan dasar sekitar <strong>{(day.trend || 0).toFixed(1)}</strong> unit.</span>
+                        </li>
+                        <li className={(day.weekly || 0) >= 0 ? 'positive' : 'negative'}>
+                          {(day.weekly || 0) >= 0 ? <FaArrowUp className="icon positive" /> : <FaArrowDown className="icon negative" />}
+                          <span>
+                            Dipengaruhi efek hari <strong>{getDayName(day.ds)}</strong> sebesar <strong>{(day.weekly || 0) > 0 ? '+' : ''}{(day.weekly || 0).toFixed(1)}</strong> unit.
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="disclaimer">
+                <strong>Disclaimer:</strong> Ini adalah prediksi matematis dan bukan jaminan. Angka sebenarnya dapat bervariasi.
+              </p>
+            </div>
+          </>
         )}
       </div>
 
@@ -174,7 +215,7 @@ function AnalyticsPage() {
                 ))}
               </ul>
             ) : (
-              <p className="no-data">Tidak ditemukan pasangan produk yang signifikan. Data transaksi mungkin masih sedikit.</p>
+              <p className="no-data">Tidak ditemukan pasangan produk yang signifikan.</p>
             )}
           </div>
         )}
