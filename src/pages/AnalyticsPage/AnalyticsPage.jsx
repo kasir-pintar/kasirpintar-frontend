@@ -1,21 +1,29 @@
-// LOKASI: src/pages/AnalyticsPage/AnalyticsPage.jsx (VERSI STABIL & LENGKAP)
+// LOKASI: src/pages/AnalyticsPage/AnalyticsPage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { getAllMenus } from '../../services/menu';
 import { getSalesForecast } from '../../services/forecast';
+import { getBasketAnalysis } from '../../services/analytics';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import './AnalyticsPage.scss';
-import { FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle, FaArrowUp, FaArrowDown, FaEquals, FaShoppingCart } from 'react-icons/fa';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function AnalyticsPage() {
+  // State untuk Prediksi Penjualan
   const [menus, setMenus] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(''); 
   const [forecastData, setForecastData] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [forecastError, setForecastError] = useState('');
 
+  // State untuk Analisis Keranjang Belanja
+  const [basketData, setBasketData] = useState(null);
+  const [basketLoading, setBasketLoading] = useState(false);
+  const [basketError, setBasketError] = useState('');
+
+  // Mengambil daftar menu saat komponen dimuat
   useEffect(() => {
     const fetchMenus = async () => {
       try {
@@ -23,12 +31,13 @@ function AnalyticsPage() {
         setMenus(menuData || []);
       } catch (err) {
         console.error("Gagal memuat daftar menu:", err);
-        setForecastError("Gagal memuat daftar menu.");
+        setForecastError("Gagal memuat daftar menu."); // Tampilkan error di panel prediksi
       }
     };
     fetchMenus();
   }, []);
 
+  // Fungsi untuk menangani permintaan prediksi penjualan
   const handleGetForecast = async () => {
     if (!selectedProduct) {
       setForecastError("Silakan pilih produk terlebih dahulu.");
@@ -55,7 +64,23 @@ function AnalyticsPage() {
       setForecastLoading(false);
     }
   };
-  
+
+  // Fungsi untuk menangani permintaan analisis keranjang belanja
+  const handleGetBasketAnalysis = async () => {
+    try {
+      setBasketLoading(true);
+      setBasketError('');
+      setBasketData(null);
+      const analysisResult = await getBasketAnalysis();
+      setBasketData(analysisResult);
+    } catch (err) {
+      setBasketError(err.toString());
+    } finally {
+      setBasketLoading(false);
+    }
+  };
+
+  // Konfigurasi untuk grafik prediksi
   const forecastChartOptions = {
     responsive: true,
     plugins: {
@@ -89,9 +114,10 @@ function AnalyticsPage() {
     <div className="analytics-container">
       <div className="analytics-header">
         <h1>Analitik & Prediksi</h1>
-        <p>Gunakan Machine Learning untuk mendapatkan wawasan bisnis di masa depan.</p>
+        <p>Gunakan data historis untuk mendapatkan wawasan bisnis di masa depan.</p>
       </div>
 
+      {/* Panel Prediksi Penjualan */}
       <div className="forecast-panel card">
         <h3>Prediksi Penjualan Produk</h3>
         <p>Pilih produk untuk melihat estimasi penjualan 7 hari ke depan berdasarkan data historis.</p>
@@ -113,21 +139,44 @@ function AnalyticsPage() {
         {forecastError && <p className="error-message small">{forecastError}</p>}
         
         {forecastData && Array.isArray(forecastData) && !forecastLoading && (
-          <>
-            <div className="forecast-chart-container">
-              <Bar options={forecastChartOptions} data={forecastChartData} />
-            </div>
-            {/* Menggunakan format penjelasan naratif yang Anda inginkan */}
-            <div className="prediction-explanation">
-                <h4><FaInfoCircle /> Memahami Hasil Prediksi</h4>
-                <p className="explanation-summary">
-                    Grafik di atas adalah <strong>estimasi jumlah unit</strong> dari produk <strong>"{selectedProduct}"</strong> yang kemungkinan akan terjual setiap hari selama 7 hari ke depan. Prediksi ini dibuat dengan menganalisis <strong>pola penjualan historis</strong> di outlet Anda dan ditujukan bagi <strong>Manajer Outlet</strong> sebagai alat bantu untuk merencanakan <strong>jumlah stok bahan baku</strong>, mengatur <strong>jadwal staf</strong>, atau merancang <strong>strategi promosi</strong>. Model ini mempelajari tren mingguan, misalnya apakah penjualan cenderung naik atau turun di akhir pekan.
-                </p>
-                <p className="disclaimer">
-                    <strong>Disclaimer:</strong> Ini adalah prediksi matematis dan bukan jaminan. Angka sebenarnya dapat bervariasi tergantung pada faktor-faktor tak terduga seperti cuaca, acara khusus, dll.
-                </p>
-            </div>
-          </>
+          <div className="forecast-chart-container">
+            <Bar options={forecastChartOptions} data={forecastChartData} />
+          </div>
+        )}
+      </div>
+
+      {/* Panel Analisis Keranjang Belanja */}
+      <div className="basket-analysis-panel card">
+        <h3><FaShoppingCart /> Analitik Keranjang Belanja</h3>
+        <p>Temukan pasangan produk yang paling sering dibeli bersama oleh pelanggan untuk membuat strategi bundling atau promosi.</p>
+        <div className="analysis-controls">
+          <button onClick={handleGetBasketAnalysis} disabled={basketLoading}>
+            {basketLoading ? 'Menganalisis...' : 'Jalankan Analisis'}
+          </button>
+        </div>
+        
+        {basketError && <p className="error-message small">{basketError}</p>}
+
+        {basketData && (
+          <div className="analysis-result">
+            <h5>Top 10 Pasangan Produk Terlaris</h5>
+            {basketData.length > 0 ? (
+              <ul className="product-pairs-list">
+                {basketData.map((pair, index) => (
+                  <li key={index}>
+                    <div className="pair-names">
+                      <span>{pair.product_1}</span> + <span>{pair.product_2}</span>
+                    </div>
+                    <div className="pair-frequency">
+                      {pair.frequency}x dibeli bersama
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="no-data">Tidak ditemukan pasangan produk yang signifikan. Data transaksi mungkin masih sedikit.</p>
+            )}
+          </div>
         )}
       </div>
     </div>

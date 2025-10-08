@@ -5,10 +5,16 @@
 
 .analytics-header {
   margin-bottom: 20px;
-  h1 { margin: 0; }
-  p { color: #6c757d; font-size: 1.1em; }
+  h1 {
+    margin: 0;
+  }
+  p {
+    color: #6c757d;
+    font-size: 1.1em;
+  }
 }
 
+// Panel Prediksi
 .forecast-panel {
   background-color: #fff;
   padding: 25px;
@@ -22,7 +28,9 @@
     padding-bottom: 10px;
   }
   
-  > p { color: #6c757d; }
+  > p {
+    color: #6c757d;
+  }
 
   .forecast-controls {
     display: flex;
@@ -39,8 +47,12 @@
       flex-grow: 1;
       min-width: 200px;
       
-      &.placeholder { color: #6c757d; }
-      option { color: #000; }
+      &.placeholder {
+        color: #6c757d;
+      }
+      option {
+        color: #000;
+      }
     }
 
     button {
@@ -69,116 +81,99 @@
     margin-top: 15px;
     text-align: left;
   }
-  
-  .prediction-explanation {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
+}
 
-    h4, h5 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #343a40;
-      margin-bottom: 10px;
-    }
-    h4 { font-size: 1.2em; }
-    h5 { font-size: 1.1em; margin-top: 20px; }
+// Panel Analisis Keranjang Belanja
+.basket-analysis-panel {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-top: 30px;
 
+  h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
 
-    .explanation-summary {
-      line-height: 1.6;
-      color: #495057;
-      margin-bottom: 25px;
-      background-color: #f8f9fa;
-      padding: 15px;
+  > p {
+    color: #6c757d;
+  }
+
+  .analysis-controls {
+    margin-top: 20px;
+    
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
       border-radius: 5px;
-      border-left: 4px solid #007bff;
+      transition: background-color 0.2s;
+
+      &:hover { background-color: #0056b3; }
+      &:disabled { background-color: #ccc; cursor: not-allowed; }
+    }
+  }
+
+  .analysis-result {
+    margin-top: 25px;
+
+    h5 {
+      font-size: 1.1em;
+      color: #343a40;
+      margin-bottom: 15px;
     }
 
-    .daily-breakdown {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
-    }
+    .product-pairs-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
 
-    .day-card {
-      border: 1px solid #e9ecef;
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      background-color: #fff;
-      overflow: hidden;
-
-      .day-header {
+      li {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
-        font-weight: bold;
-        background-color: #f8f9fa;
-        padding: 10px 15px;
-        border-bottom: 1px solid #e9ecef;
-        .date { font-size: 1.1em; color: #343a40; }
-        .day-name { font-size: 0.9em; color: #6c757d; }
-      }
-
-      .prediction-value {
-        font-size: 2.8em;
-        font-weight: bold;
-        color: #28a745;
-        text-align: center;
+        align-items: center;
         padding: 15px 10px;
-        span {
-          font-size: 0.4em;
-          font-weight: normal;
-          color: #6c757d;
-        }
-      }
+        border-bottom: 1px solid #f0f0f0;
 
-      .explanation-details {
-        font-size: 0.9em;
-        padding: 0 15px 15px 15px;
-        border-top: 1px solid #e9ecef;
-        background-color: #f8f9fa;
-        flex-grow: 1;
-
-        p {
-          margin: 10px 0 10px 0;
-          font-weight: bold;
-          color: #495057;
-          text-align: center;
+        &:last-child {
+          border-bottom: none;
         }
-        ul {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 0;
-            line-height: 1.5;
-            .icon {
-              font-size: 0.8em;
-              flex-shrink: 0;
-              &.trend { color: #6c757d; }
-              &.positive { color: #155724; }
-              &.negative { color: #721c24; }
-            }
-            &.positive { color: #155724; }
-            &.negative { color: #721c24; }
+
+        .pair-names {
+          font-weight: 500;
+          color: #343a40;
+          
+          span {
+            background-color: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
           }
+        }
+
+        .pair-frequency {
+          font-weight: bold;
+          color: #28a745;
+          font-size: 1.1em;
         }
       }
     }
     
-    .disclaimer {
-      margin-top: 25px;
-      font-size: 0.9em;
+    .no-data {
       color: #6c757d;
-      background-color: #fff3cd;
-      border-left: 4px solid #ffc107;
-      padding: 10px 15px;
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
     }
   }
 }
