@@ -1,0 +1,112 @@
+// LOKASI: src/pages/OperationalReportPage/OperationalReportPage.scss
+.operational-report-container {
+  padding: 30px;
+}
+
+.operational-report-header {
+  margin-bottom: 20px;
+  h1 { margin: 0; }
+  p { color: #6c757d; font-size: 1.1em; }
+}
+
+.error-message.small {
+  font-size: 0.9em;
+  padding: 10px;
+  margin-top: 15px;
+  text-align: left;
+}
+
+.card {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 30px;
+
+  h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  > p {
+    color: #6c757d;
+  }
+
+  .analysis-controls {
+    margin-top: 20px;
+    
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+
+      &:disabled { background-color: #ccc; cursor: not-allowed; }
+    }
+  }
+}
+
+.basket-analysis-panel {
+  .analysis-controls button {
+    background-color: #007bff;
+    &:hover { background-color: #0056b3; }
+  }
+
+  .analysis-result {
+    margin-top: 25px;
+    h5 { font-size: 1.1em; color: #343a40; margin-bottom: 15px; }
+
+    .product-pairs-list {
+      list-style: none; padding: 0; margin: 0;
+      li {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 15px 10px; border-bottom: 1px solid #f0f0f0;
+        &:last-child { border-bottom: none; }
+        .pair-names {
+          font-weight: 500; color: #343a40;
+          span { background-color: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
+        }
+        .pair-frequency { font-weight: bold; color: #28a745; font-size: 1.1em; }
+      }
+    }
+    .no-data { color: #6c757d; background-color: #f8f9fa; padding: 15px; border-radius: 5px; text-align: center; }
+  }
+}
+
+.busy-hours-panel {
+  .analysis-controls button {
+    background-color: #dc3545;
+    &:hover { background-color: #c82333; }
+  }
+
+  .heatmap-container { margin-top: 25px; }
+  .heatmap-legend {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 10px; font-size: 0.8em; color: #6c757d; margin-bottom: 10px;
+    .gradient-bar {
+      width: 150px; height: 15px;
+      background: linear-gradient(to right, hsl(120, 100%, 80%), hsl(60, 100%, 80%), hsl(0, 100%, 80%));
+      border: 1px solid #ccc; border-radius: 3px;
+    }
+  }
+  
+  .heatmap-table-wrapper { overflow-x: auto; padding-bottom: 10px; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 0.8em;
+    th, td { border: 1px solid #ccc; padding: 5px; text-align: center; min-width: 50px; }
+    thead th { background-color: #f8f9fa; font-weight: 600; }
+    tbody td {
+      font-weight: bold; color: #343a40; cursor: help; transition: transform 0.1s;
+      &:hover { transform: scale(1.1); box-shadow: 0 0 10px rgba(0,0,0,0.2); position: relative; z-index: 1; }
+    }
+    tbody tr td:first-child { background-color: #f8f9fa; font-weight: bold; text-align: left; padding-left: 10px; }
+  }
+}
