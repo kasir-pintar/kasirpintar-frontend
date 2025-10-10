@@ -22,3 +22,14 @@ export const getBusyHours = async () => {
     throw error.response?.data?.message || "Gagal menghubungi layanan waktu sibuk.";
   }
 };
+
+// --- FUNGSI BARU UNTUK ANALISIS PELANGGAN (RFM) ---
+export const getCustomerSegmentation = async () => {
+  try {
+    const response = await api.get('/reports/customer-segmentation');
+    return response.data;
+  } catch (error) {
+    console.error("Gagal mengambil data segmentasi pelanggan:", error);
+    throw error.response?.data?.message || "Gagal menghubungi layanan segmentasi pelanggan.";
+  }
+};
