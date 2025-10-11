@@ -4,10 +4,17 @@ import { getAllPromotions, updatePromotionStatus } from '../../services/promotio
 import CreatePromotionModal from '../../components/CreatePromotionModal';
 import './PromotionPage.scss';
 import { FaPlus, FaTicketAlt, FaPercent, FaMoneyBillWave, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 // Komponen Kartu Promosi dengan Tombol Aksi
 const PromotionCard = ({ promo, onStatusChange }) => {
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  // --- FUNGSI DENGAN NAMA YANG SUDAH DIPERBAIKI ---
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+  };
+
   const getPromoValue = () => promo.type === 'PERCENTAGE' ? `${promo.value}%` : `Rp ${parseInt(promo.value).toLocaleString('id-ID')}`;
 
   return (
@@ -53,6 +60,7 @@ function PromotionPage() {
       setPromotions(data || []);
     } catch (err) {
       setError(err.toString());
+      toast.error("Gagal memuat data promosi.");
     } finally {
       setLoading(false);
     }
@@ -63,7 +71,10 @@ function PromotionPage() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handlePromotionCreated = () => { fetchPromotions(); };
+  const handlePromotionCreated = () => { 
+    fetchPromotions(); 
+    toast.success("Promosi baru berhasil dibuat!");
+  };
 
   const handleStatusChange = async (promoId, newStatus) => {
     try {
@@ -71,8 +82,9 @@ function PromotionPage() {
       setPromotions(currentPromos => 
         currentPromos.map(p => p.id === promoId ? updatedPromotion : p)
       );
+      toast.success(`Status promosi "${updatedPromotion.name}" berhasil diubah menjadi ${newStatus}.`);
     } catch (err) {
-      alert(`Gagal mengubah status: ${err}`);
+      toast.error(`Gagal mengubah status: ${err}`);
     }
   };
 
@@ -84,7 +96,7 @@ function PromotionPage() {
       </div>
       <div className="promotion-list">
         {loading && <p>Memuat data promosi...</p>}
-        {error && <p className="error-message">{error}</p>}
+        
         {!loading && !error && promotions.length === 0 && (
           <div className="no-data">
             <FaTicketAlt /><p>Belum ada promosi yang dibuat.</p><span>Klik "Buat Promosi Baru" untuk memulai.</span>
@@ -98,7 +110,6 @@ function PromotionPage() {
           </div>
         )}
       </div>
-      {/* Panggilan ke modal sekarang sudah menggunakan standar react-modal */}
       <CreatePromotionModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal} 
