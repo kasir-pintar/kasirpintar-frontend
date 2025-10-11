@@ -11,6 +11,17 @@ export const getAllPromotions = async () => {
   }
 };
 
+// --- FUNGSI BARU UNTUK MENGAMBIL DETAIL PROMO & VOUCHER ---
+export const getPromotionById = async (promoId) => {
+  try {
+    const response = await api.get(`/promotions/${promoId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Gagal mengambil detail promosi:", error);
+    throw error.response?.data?.message || "Gagal menghubungi layanan promosi.";
+  }
+};
+
 export const createPromotion = async (promotionData) => {
   try {
     const response = await api.post('/promotions/', promotionData);
@@ -21,7 +32,6 @@ export const createPromotion = async (promotionData) => {
   }
 };
 
-// --- FUNGSI BARU UNTUK UPDATE STATUS ---
 export const updatePromotionStatus = async (promoId, status) => {
   try {
     const response = await api.patch(`/promotions/${promoId}/status`, { status });

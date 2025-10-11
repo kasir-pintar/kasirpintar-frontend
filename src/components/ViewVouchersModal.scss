@@ -1,0 +1,82 @@
+// LOKASI: src/components/ViewVouchersModal.scss
+.vouchers-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+
+.vouchers-modal {
+  width: 90%; max-width: 600px; background: white; padding: 30px;
+  border-radius: 8px; outline: none; display: flex; flex-direction: column;
+  max-height: 90vh;
+
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #eee; padding-bottom: 15px; flex-shrink: 0;
+    
+    h2 { margin: 0; font-size: 1.4em; }
+    .close-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; }
+  }
+
+  .modal-body {
+    padding-top: 20px;
+    overflow-y: auto; // Agar daftar voucher bisa di-scroll
+
+    p { margin-top: 0; }
+  }
+
+  .vouchers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .voucher-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+
+    &.used {
+      background-color: #e9ecef;
+      .voucher-code {
+        text-decoration: line-through;
+        color: #6c757d;
+      }
+    }
+  }
+
+  .voucher-code {
+    flex-grow: 1;
+    font-weight: bold;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+  }
+
+  .voucher-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+    padding: 3px 8px;
+    border-radius: 12px;
+    
+    .available & { color: #155724; background-color: #d4edda; }
+    .used & { color: #495057; background-color: #ced4da; }
+  }
+
+  .copy-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+}
