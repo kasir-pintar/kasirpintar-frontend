@@ -5,8 +5,13 @@
 
 .analytics-header {
   margin-bottom: 20px;
-  h1 { margin: 0; }
-  p { color: #6c757d; font-size: 1.1em; }
+  h1 {
+    margin: 0;
+  }
+  p {
+    color: #6c757d;
+    font-size: 1.1em;
+  }
 }
 
 .forecast-panel {
@@ -41,8 +46,12 @@
       flex-grow: 1;
       min-width: 200px;
       
-      &.placeholder { color: #6c757d; }
-      option { color: #000; }
+      &.placeholder {
+        color: #6c757d;
+      }
+      option {
+        color: #000;
+      }
     }
 
     button {
@@ -61,16 +70,77 @@
     }
   }
 
-  .forecast-chart-container {
-    margin-top: 25px;
-  }
-
   .error-message.small {
     font-size: 0.9em;
     padding: 10px;
     margin-top: 15px;
     text-align: left;
   }
+
+  /* --- STYLE BARU UNTUK METRIK & GRAFIK VALIDASI --- */
+  .metrics-panel, .validation-chart-container {
+    margin-top: 30px;
+    padding: 25px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+  }
+
+  .metrics-panel {
+    h4 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #007bff;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-item {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+
+      .metric-value {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #007bff;
+      }
+      .metric-label {
+        font-weight: 600;
+        color: #343a40;
+        margin-top: 5px;
+      }
+      .metric-desc {
+        font-size: 0.8em;
+        color: #6c757d;
+        margin-top: 8px;
+        line-height: 1.4;
+      }
+    }
+  }
+
+  .validation-chart-container {
+    h4 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #6f42c1;
+    }
+  }
+
+  /* --- AKHIR STYLE BARU --- */
 
   .prediction-explanation {
     margin-top: 30px;
