@@ -11,7 +11,8 @@ import DashboardIndexPage from '../pages/Dashboard/index';
 import TransactionHistoryPage from '../pages/TransactionHistory/TransactionHistory';
 import AnalyticsPage from '../pages/AnalyticsPage/AnalyticsPage';
 import UserManagementPage from '../pages/UserManagement/UserManagement';
-import OperationalReportPage from '../pages/OperationalReportPage/OperationalReportPage'; // <-- IMPORT BARU
+import OperationalReportPage from '../pages/OperationalReportPage/OperationalReportPage';
+import PromotionPage from '../pages/PromotionPage/PromotionPage'; // <-- IMPORT BARU
 
 // Layout
 import MainLayout from '../layouts/MainLayout';
@@ -43,9 +44,10 @@ function App() {
           <Route path="/dashboard" element={<DashboardIndexPage />} />
           <Route path="/transactions" element={<TransactionHistoryPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/reports" element={<OperationalReportPage />} />
           
           {/* --- RUTE BARU DI SINI --- */}
-          <Route path="/reports" element={<OperationalReportPage />} />
+          <Route path="/promotions" element={<PromotionPage />} />
         </Route>
         
         {/* Rute khusus Admin (jika ada, di luar MainLayout) */}

@@ -1,11 +1,12 @@
-// LOKASI: src/components/Sidebar.jsx
+// LOKASI: src/components/Sidebar/Sidebar.jsx
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   FaTachometerAlt, 
   FaHistory, 
   FaLightbulb, 
-  FaChartLine, // <-- Tambahkan ikon baru untuk Laporan
+  FaChartLine,
+  FaTags, // <-- Tambahkan ikon baru untuk Promosi
   FaSignOutAlt, 
   FaTimes 
 } from 'react-icons/fa';
@@ -29,10 +30,11 @@ function Sidebar({ isOpen, toggle }) {
         <nav className="sidebar-nav">
           <NavLink to="/dashboard" end onClick={toggle}><FaTachometerAlt /> Dashboard</NavLink>
           <NavLink to="/transactions" onClick={toggle}><FaHistory /> Riwayat Transaksi</NavLink>
-          <NavLink to="/analytics" onClick={toggle}><FaLightbulb />Prediksi Penjualan </NavLink>
+          <NavLink to="/analytics" onClick={toggle}><FaLightbulb /> Prediksi Penjualan</NavLink>
+          <NavLink to="/reports" onClick={toggle}><FaChartLine /> Laporan Operasional</NavLink>
           
           {/* --- INI MENU BARU KITA --- */}
-          <NavLink to="/reports" onClick={toggle}><FaChartLine /> Laporan Operasional</NavLink>
+          <NavLink to="/promotions" onClick={toggle}><FaTags /> Manajemen Promosi</NavLink>
         </nav>
         <div className="sidebar-footer">
           <button onClick={handleLogout}><FaSignOutAlt /> Logout</button>
