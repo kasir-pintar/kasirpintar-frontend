@@ -7,18 +7,19 @@ export const getAllPromotions = async () => {
     return response.data;
   } catch (error) {
     console.error("Gagal mengambil data promosi:", error);
-    throw error.response?.data?.message || "Gagal menghubungi layanan promosi.";
+    // PERBAIKAN: .message -> .error
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
   }
 };
 
-// --- FUNGSI BARU UNTUK MENGAMBIL DETAIL PROMO & VOUCHER ---
 export const getPromotionById = async (promoId) => {
   try {
     const response = await api.get(`/promotions/${promoId}`);
     return response.data;
   } catch (error) {
     console.error("Gagal mengambil detail promosi:", error);
-    throw error.response?.data?.message || "Gagal menghubungi layanan promosi.";
+    // PERBAIKAN: .message -> .error
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
   }
 };
 
@@ -28,7 +29,8 @@ export const createPromotion = async (promotionData) => {
     return response.data;
   } catch (error) {
     console.error("Gagal membuat promosi:", error);
-    throw error.response?.data?.message || "Gagal menghubungi layanan promosi.";
+    // PERBAIKAN: .message -> .error
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
   }
 };
 
@@ -38,7 +40,8 @@ export const updatePromotionStatus = async (promoId, status) => {
     return response.data;
   } catch (error) {
     console.error("Gagal memperbarui status promosi:", error);
-    throw error.response?.data?.message || "Gagal menghubungi layanan promosi.";
+    // PERBAIKAN: .message -> .error
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
   }
 };
 
@@ -48,6 +51,7 @@ export const applyVoucher = async (code) => {
     return response.data;
   } catch (error) {
     console.error("Gagal menerapkan voucher:", error);
-    throw error.response?.data?.message || "Voucher tidak valid atau terjadi kesalahan.";
+    // PERBAIKAN: .message -> .error
+    throw error.response?.data?.error || "Voucher tidak valid atau terjadi kesalahan.";
   }
 };
