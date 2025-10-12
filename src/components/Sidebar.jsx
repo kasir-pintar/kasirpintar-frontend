@@ -6,7 +6,8 @@ import {
   FaHistory, 
   FaLightbulb, 
   FaChartLine,
-  FaTags, // <-- Tambahkan ikon baru untuk Promosi
+  FaTags,
+  FaUtensils, // <-- IKON BARU
   FaSignOutAlt, 
   FaTimes 
 } from 'react-icons/fa';
@@ -29,12 +30,14 @@ function Sidebar({ isOpen, toggle }) {
         </div>
         <nav className="sidebar-nav">
           <NavLink to="/dashboard" end onClick={toggle}><FaTachometerAlt /> Dashboard</NavLink>
+          
+          {/* --- MENU BARU DI SINI --- */}
+          <NavLink to="/management/menus" onClick={toggle}><FaUtensils /> Manajemen Menu</NavLink>
+          
+          <NavLink to="/promotions" onClick={toggle}><FaTags /> Manajemen Promosi</NavLink>
           <NavLink to="/transactions" onClick={toggle}><FaHistory /> Riwayat Transaksi</NavLink>
           <NavLink to="/analytics" onClick={toggle}><FaLightbulb /> Prediksi Penjualan</NavLink>
           <NavLink to="/reports" onClick={toggle}><FaChartLine /> Laporan Operasional</NavLink>
-          
-          {/* --- INI MENU BARU KITA --- */}
-          <NavLink to="/promotions" onClick={toggle}><FaTags /> Manajemen Promosi</NavLink>
         </nav>
         <div className="sidebar-footer">
           <button onClick={handleLogout}><FaSignOutAlt /> Logout</button>
