@@ -1,0 +1,22 @@
+/* LOKASI: src/index.css */
+/* Reset dasar */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f4f6f8;
+}
+
+/* --- PERBAIKAN UTAMA GLOBAL DI SINI --- */
+/* Aturan ini memberitahu browser untuk memasukkan padding dan border
+  ke dalam total lebar elemen, bukan menambahkannya di luar.
+  Ini mencegah banyak masalah layout yang tidak terduga.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

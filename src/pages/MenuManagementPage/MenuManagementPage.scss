@@ -3,66 +3,111 @@
   padding: 30px;
 
   .page-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
-    h1 { margin: 0; }
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    h1 {
+      margin: 0;
+    }
     .add-btn {
-      background-color: #007bff; color: white; border: none; padding: 10px 20px;
-      font-size: 1em; font-weight: bold; border-radius: 5px; cursor: pointer;
-      display: flex; align-items: center; gap: 8px; transition: background-color 0.2s;
-      &:hover { background-color: #0056b3; }
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.2s;
+      &:hover {
+        background-color: #0056b3;
+      }
     }
   }
 
   .page-content {
-    background-color: #fff; padding: 20px; border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .no-data {
-    text-align: center; padding: 50px; color: #6c757d;
-    svg { font-size: 4em; margin-bottom: 15px; }
-    p { font-size: 1.2em; }
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
   }
 
-  // --- STYLE BARU UNTUK TABEL ---
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 50px;
+    color: #6c757d;
+    svg {
+      font-size: 4em;
+      margin-bottom: 15px;
+    }
+    p {
+      font-size: 1.2em;
+    }
+  }
+
   .menu-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 600px;
 
-    thead {
+    thead th {
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
       background-color: #f8f9fa;
-      tr {
-        th {
-          padding: 12px 15px;
-          text-align: left;
-          font-weight: 600;
-          border-bottom: 2px solid #dee2e6;
-        }
+      border-bottom: 2px solid #dee2e6;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      &:hover {
+        background-color: #f1f1f1;
+      }
+      td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
       }
     }
 
-    tbody {
-      tr {
-        &:hover { background-color: #f1f1f1; }
-        td {
-          padding: 12px 15px;
-          border-bottom: 1px solid #e9ecef;
-          vertical-align: middle;
-        }
-      }
+    // --- STYLE BARU UNTUK KOLOM "No" ---
+    .column-no {
+      width: 50px; // Atur lebar kolom agar tidak terlalu besar
+      text-align: center;
     }
-
+    
     .action-cell {
       display: flex;
       gap: 10px;
     }
-
     .action-btn {
-      border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer;
-      display: flex; align-items: center; gap: 5px; font-size: 0.9em;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9em;
+      white-space: nowrap;
 
-      &.edit-btn { background-color: #ffc107; color: #212529; }
-      &.delete-btn { background-color: #dc3545; color: white; }
+      &.edit-btn {
+        background-color: #ffc107;
+        color: #212529;
+      }
+      &.delete-btn {
+        background-color: #dc3545;
+        color: white;
+      }
     }
   }
 }
