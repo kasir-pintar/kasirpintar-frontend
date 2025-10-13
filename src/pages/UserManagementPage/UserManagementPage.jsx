@@ -1,12 +1,12 @@
 // LOKASI: src/pages/UserManagementPage/UserManagementPage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { getAllUsers, getArchivedUsers, createUser, updateUser, deleteUser, restoreUser } from '../../services/user';
+import { getAllUsers, getArchivedUsers, createUser, updateUser, deleteUser, restoreUser, permanentDeleteUser } from '../../services/user';
 import { toast } from 'react-toastify';
 import UserFormModal from '../../components/UserFormModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import './UserManagementPage.scss';
-import { FaPlus, FaUsers, FaEdit, FaTrash, FaSearch, FaArchive, FaTrashRestore } from 'react-icons/fa';
+import { FaPlus, FaUsers, FaEdit, FaTrash, FaSearch, FaArchive, FaTrashRestore, FaExclamationTriangle } from 'react-icons/fa';
 
 function UserManagementPage() {
   const [users, setUsers] = useState([]);
@@ -15,12 +15,12 @@ function UserManagementPage() {
   const [editingUser, setEditingUser] = useState(null);
   const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
   const [userToAction, setUserToAction] = useState(null);
-  const [actionType, setActionType] = useState(''); // 'delete' or 'restore'
+  const [actionType, setActionType] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentUser, setCurrentUser] = useState(null);
-  const [view, setView] = useState('active'); // 'active' or 'archived'
+  const [view, setView] = useState('active');
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -33,11 +33,10 @@ function UserManagementPage() {
   }, []);
 
   useEffect(() => {
-    // Jangan fetch data jika currentUser belum siap
     if (currentUser) {
       fetchUsers();
     }
-  }, [view, currentUser]); // Ambil ulang data setiap kali 'view' atau 'currentUser' berubah
+  }, [view, currentUser]);
   
   const fetchUsers = async () => {
     try {
@@ -47,7 +46,7 @@ function UserManagementPage() {
     } catch (error) {
       const errorMsg = view === 'active' ? 'Gagal memuat data user' : 'Gagal memuat arsip user';
       toast.error(`${errorMsg}: ${error}`);
-      setUsers([]); // Pastikan users adalah array kosong jika gagal
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -67,7 +66,6 @@ function UserManagementPage() {
     const isEditing = !!editingUser;
     const action = isEditing ? updateUser : createUser;
     const successMessage = isEditing ? 'User berhasil diperbarui!' : 'User baru berhasil ditambahkan!';
-    
     try {
       if (isEditing) {
         await action(editingUser.ID, formData);
@@ -94,6 +92,12 @@ function UserManagementPage() {
     setConfirmModalOpen(true);
   };
 
+  const handlePermanentDeleteRequest = (user) => {
+    setUserToAction(user);
+    setActionType('permanent-delete');
+    setConfirmModalOpen(true);
+  };
+
   const handleCloseConfirmModal = () => {
     setConfirmModalOpen(false);
     setUserToAction(null);
@@ -102,18 +106,23 @@ function UserManagementPage() {
 
   const handleConfirmAction = async () => {
     if (!userToAction) return;
-    
     try {
       if (actionType === 'delete') {
         await deleteUser(userToAction.ID);
-        toast.success(`User "${userToAction.Name}" berhasil diarsipkan.`);
+        toast.success(`User "${userToAction.Name}" berhasil dinonaktifkan.`);
       } else if (actionType === 'restore') {
         await restoreUser(userToAction.ID);
         toast.success(`User "${userToAction.Name}" berhasil diaktifkan kembali.`);
+      } else if (actionType === 'permanent-delete') {
+        await permanentDeleteUser(userToAction.ID);
+        toast.success(`User "${userToAction.Name}" telah dihapus permanen.`);
       }
       fetchUsers();
     } catch (error) {
-      const errorMsg = actionType === 'delete' ? 'Gagal mengarsipkan user' : 'Gagal mengembalikan user';
+      let errorMsg = 'Aksi gagal';
+      if (actionType === 'delete') errorMsg = 'Gagal menonaktifkan user';
+      if (actionType === 'restore') errorMsg = 'Gagal mengaktifkan user';
+      if (actionType === 'permanent-delete') errorMsg = 'Gagal menghapus permanen user';
       toast.error(`${errorMsg}: ${error}`);
     } finally {
       handleCloseConfirmModal();
@@ -171,12 +180,7 @@ function UserManagementPage() {
         <div className="table-controls">
           <div className="search-input">
             <FaSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Cari nama atau email..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            />
+            <input type="text" placeholder="Cari nama atau email..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} />
           </div>
           <div className="items-per-page-selector">
             <label htmlFor="items-per-page">Tampilkan:</label>
@@ -195,8 +199,7 @@ function UserManagementPage() {
               <table className="user-table">
                 <thead>
                   <tr>
-                    <th className="column-no">No</th>
-                    <th>Nama</th><th>Email</th><th>Peran</th><th>Outlet</th><th>Aksi</th>
+                    <th className="column-no">No</th><th>Nama</th><th>Email</th><th>Peran</th><th>Outlet</th><th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,13 +217,20 @@ function UserManagementPage() {
                               <FaEdit /> Edit
                             </button>
                             <button className="action-btn delete-btn" onClick={() => handleDeleteRequest(user)} disabled={isActionDisabled(user)}>
-                              <FaTrash /> Arsipkan
+                              <FaTrash /> Nonaktifkan
                             </button>
                           </>
                         ) : (
-                          <button className="action-btn restore-btn" onClick={() => handleRestoreRequest(user)}>
-                            <FaTrashRestore /> Aktifkan
-                          </button>
+                          <>
+                            <button className="action-btn restore-btn" onClick={() => handleRestoreRequest(user)}>
+                              <FaTrashRestore /> Aktifkan
+                            </button>
+                            {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+                              <button className="action-btn permanent-delete-btn" onClick={() => handlePermanentDeleteRequest(user)}>
+                                <FaExclamationTriangle /> Hapus Permanen
+                              </button>
+                            )}
+                          </>
                         )}
                       </td>
                     </tr>
@@ -240,23 +250,12 @@ function UserManagementPage() {
         )}
       </div>
       
-      <UserFormModal
-        isOpen={isFormModalOpen}
-        onClose={handleCloseFormModal}
-        onSubmit={handleSubmitUser}
-        initialData={editingUser}
-        currentUser={currentUser}
-      />
-
-      <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={handleCloseConfirmModal}
-        onConfirm={handleConfirmAction}
-        title={actionType === 'delete' ? 'Konfirmasi Arsip User' : 'Konfirmasi Aktivasi User'}
+      <UserFormModal isOpen={isFormModalOpen} onClose={handleCloseFormModal} onSubmit={handleSubmitUser} initialData={editingUser} currentUser={currentUser} />
+      <ConfirmationModal isOpen={isConfirmModalOpen} onClose={handleCloseConfirmModal} onConfirm={handleConfirmAction} title={`Konfirmasi Aksi`}
         message={
-          actionType === 'delete' 
-          ? `Apakah Anda yakin ingin mengarsipkan user "${userToAction?.Name}"?`
-          : `Apakah Anda yakin ingin mengaktifkan kembali user "${userToAction?.Name}"?`
+          actionType === 'delete' ? `Apakah Anda yakin ingin menonaktifkan user "${userToAction?.Name}"?`
+          : actionType === 'restore' ? `Apakah Anda yakin ingin mengaktifkan kembali user "${userToAction?.Name}"?`
+          : `PERINGATAN: Aksi ini tidak dapat dibatalkan. Anda akan menghapus user "${userToAction?.Name}" dan semua data transaksinya secara permanen. Lanjutkan?`
         }
       />
     </div>

@@ -1,7 +1,6 @@
 // LOKASI: src/services/user.js
 import api from './api';
 
-// Mengambil semua user aktif
 export const getAllUsers = async () => {
   try {
     const response = await api.get('/admin/users');
@@ -12,7 +11,6 @@ export const getAllUsers = async () => {
   }
 };
 
-// Mengambil semua user yang diarsipkan
 export const getArchivedUsers = async () => {
   try {
     const response = await api.get('/admin/users/archived');
@@ -23,7 +21,6 @@ export const getArchivedUsers = async () => {
   }
 };
 
-// Membuat user baru
 export const createUser = async (userData) => {
   try {
     const response = await api.post('/admin/users', userData);
@@ -34,7 +31,6 @@ export const createUser = async (userData) => {
   }
 };
 
-// Memperbarui user
 export const updateUser = async (userId, userData) => {
   try {
     const response = await api.put(`/admin/users/${userId}`, userData);
@@ -45,7 +41,6 @@ export const updateUser = async (userId, userData) => {
   }
 };
 
-// Menghapus user (soft delete)
 export const deleteUser = async (userId) => {
   try {
     const response = await api.delete(`/admin/users/${userId}`);
@@ -56,7 +51,6 @@ export const deleteUser = async (userId) => {
   }
 };
 
-// Mengembalikan user dari arsip
 export const restoreUser = async (userId) => {
   try {
     const response = await api.patch(`/admin/users/${userId}/restore`);
@@ -67,7 +61,16 @@ export const restoreUser = async (userId) => {
   }
 };
 
-// Mengubah password pengguna yang sedang login
+export const permanentDeleteUser = async (userId) => {
+    try {
+      const response = await api.delete(`/admin/users/${userId}/permanent`);
+      return response.data;
+    } catch (error) {
+      console.error("Gagal menghapus user permanen:", error);
+      throw error.response?.data?.error || "Gagal menghubungi layanan hapus permanen.";
+    }
+};
+
 export const changePassword = async (passwordData) => {
     try {
       const response = await api.patch('/users/me/password', passwordData);
@@ -76,4 +79,4 @@ export const changePassword = async (passwordData) => {
       console.error("Gagal mengubah password:", error);
       throw error.response?.data?.error || "Gagal menghubungi layanan.";
     }
-  };
+};

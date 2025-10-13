@@ -16,7 +16,7 @@ function UserFormModal({ isOpen, onClose, onSubmit, initialData, currentUser }) 
   useEffect(() => {
     const fetchOutlets = async () => {
       try {
-        const response = await api.get('/outlets');
+        const response = await api.get('/outlets/');
         const outletsData = response.data || [];
         setOutlets(outletsData);
 
