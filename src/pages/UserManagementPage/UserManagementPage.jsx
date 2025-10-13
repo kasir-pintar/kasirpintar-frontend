@@ -1,11 +1,12 @@
+// LOKASI: src/pages/UserManagementPage/UserManagementPage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { getAllUsers, createUser, updateUser, deleteUser } from '../../services/user';
+import { getAllUsers, getArchivedUsers, createUser, updateUser, deleteUser, restoreUser } from '../../services/user';
 import { toast } from 'react-toastify';
 import UserFormModal from '../../components/UserFormModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import './UserManagementPage.scss';
-import { FaPlus, FaUsers, FaEdit, FaTrash, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaUsers, FaEdit, FaTrash, FaSearch, FaArchive, FaTrashRestore } from 'react-icons/fa';
 
 function UserManagementPage() {
   const [users, setUsers] = useState([]);
@@ -13,11 +14,13 @@ function UserManagementPage() {
   const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [userToAction, setUserToAction] = useState(null);
+  const [actionType, setActionType] = useState(''); // 'delete' or 'restore'
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentUser, setCurrentUser] = useState(null);
+  const [view, setView] = useState('active'); // 'active' or 'archived'
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -27,16 +30,24 @@ function UserManagementPage() {
         setCurrentUser({ id: decoded.sub, role: decoded.role, outlet_id: decoded.outlet_id });
       } catch (e) { console.error("Invalid Token") }
     }
-    fetchUsers();
   }, []);
+
+  useEffect(() => {
+    // Jangan fetch data jika currentUser belum siap
+    if (currentUser) {
+      fetchUsers();
+    }
+  }, [view, currentUser]); // Ambil ulang data setiap kali 'view' atau 'currentUser' berubah
   
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const data = await getAllUsers();
+      const data = view === 'active' ? await getAllUsers() : await getArchivedUsers();
       setUsers(data || []);
     } catch (error) {
-      toast.error(`Gagal memuat data user: ${error}`);
+      const errorMsg = view === 'active' ? 'Gagal memuat data user' : 'Gagal memuat arsip user';
+      toast.error(`${errorMsg}: ${error}`);
+      setUsers([]); // Pastikan users adalah array kosong jika gagal
     } finally {
       setLoading(false);
     }
@@ -72,33 +83,48 @@ function UserManagementPage() {
   };
 
   const handleDeleteRequest = (user) => {
-    setUserToDelete(user);
+    setUserToAction(user);
+    setActionType('delete');
+    setConfirmModalOpen(true);
+  };
+
+  const handleRestoreRequest = (user) => {
+    setUserToAction(user);
+    setActionType('restore');
     setConfirmModalOpen(true);
   };
 
   const handleCloseConfirmModal = () => {
     setConfirmModalOpen(false);
-    setUserToDelete(null);
+    setUserToAction(null);
+    setActionType('');
   };
 
-  const handleConfirmDelete = async () => {
-    if (!userToDelete) return;
+  const handleConfirmAction = async () => {
+    if (!userToAction) return;
+    
     try {
-      await deleteUser(userToDelete.ID);
-      toast.success(`User "${userToDelete.Name}" berhasil dihapus.`);
+      if (actionType === 'delete') {
+        await deleteUser(userToAction.ID);
+        toast.success(`User "${userToAction.Name}" berhasil diarsipkan.`);
+      } else if (actionType === 'restore') {
+        await restoreUser(userToAction.ID);
+        toast.success(`User "${userToAction.Name}" berhasil diaktifkan kembali.`);
+      }
       fetchUsers();
     } catch (error) {
-      toast.error(`Gagal menghapus user: ${error}`);
+      const errorMsg = actionType === 'delete' ? 'Gagal mengarsipkan user' : 'Gagal mengembalikan user';
+      toast.error(`${errorMsg}: ${error}`);
     } finally {
       handleCloseConfirmModal();
     }
   };
 
   const filteredUsers = useMemo(() => {
+    if (!Array.isArray(users)) return [];
     return users.filter(user =>
       (user.Name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (user.Email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      (user.Role?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+      (user.Email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
   }, [users, searchTerm]);
 
@@ -120,14 +146,25 @@ function UserManagementPage() {
     if (currentUser.role === 'manager' && targetUser.Role !== 'cashier') return true;
     return false;
   };
+  
+  const toggleView = () => {
+    setView(prev => prev === 'active' ? 'archived' : 'active');
+    setCurrentPage(1);
+    setSearchTerm('');
+  };
 
   return (
     <div className="user-management-container">
       <div className="page-header">
-        <h1>Manajemen User</h1>
-        <button className="add-btn" onClick={() => handleOpenFormModal(null)}>
-          <FaPlus /> Tambah User Baru
-        </button>
+        <h1>{view === 'active' ? 'Manajemen User' : 'Arsip User'}</h1>
+        <div className="header-actions">
+          <button className="view-toggle-btn" onClick={toggleView}>
+            {view === 'active' ? <><FaArchive /> Lihat Arsip</> : <><FaUsers /> Lihat User Aktif</>}
+          </button>
+          <button className="add-btn" onClick={() => handleOpenFormModal(null)} disabled={view === 'archived'}>
+            <FaPlus /> Tambah User Baru
+          </button>
+        </div>
       </div>
 
       <div className="page-content">
@@ -136,7 +173,7 @@ function UserManagementPage() {
             <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder="Cari nama, email, atau peran..."
+              placeholder="Cari nama atau email..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
@@ -149,9 +186,9 @@ function UserManagementPage() {
           </div>
         </div>
 
-        {loading ? ( <p>Memuat data user...</p> ) 
-        : users.length === 0 ? (
-          <div className="no-data"><FaUsers /><p>Belum ada user.</p></div>
+        {loading ? ( <p>Memuat data...</p> ) 
+        : filteredUsers.length === 0 ? (
+          <div className="no-data"><FaUsers /><p>{view === 'active' ? 'Belum ada user aktif.' : 'Arsip kosong.'}</p></div>
         ) : (
           <>
             <div className="table-wrapper">
@@ -171,20 +208,25 @@ function UserManagementPage() {
                       <td><span className={`role-badge role-${user.Role}`}>{user.Role}</span></td>
                       <td>{user.Outlet?.Name || '-'}</td>
                       <td className="action-cell">
-                        <button className="action-btn edit-btn" onClick={() => handleOpenFormModal(user)} disabled={isActionDisabled(user)}>
-                          <FaEdit /> Edit
-                        </button>
-                        <button className="action-btn delete-btn" onClick={() => handleDeleteRequest(user)} disabled={isActionDisabled(user)}>
-                          <FaTrash /> Hapus
-                        </button>
+                        {view === 'active' ? (
+                          <>
+                            <button className="action-btn edit-btn" onClick={() => handleOpenFormModal(user)} disabled={isActionDisabled(user)}>
+                              <FaEdit /> Edit
+                            </button>
+                            <button className="action-btn delete-btn" onClick={() => handleDeleteRequest(user)} disabled={isActionDisabled(user)}>
+                              <FaTrash /> Arsipkan
+                            </button>
+                          </>
+                        ) : (
+                          <button className="action-btn restore-btn" onClick={() => handleRestoreRequest(user)}>
+                            <FaTrashRestore /> Aktifkan
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              {filteredUsers.length === 0 && (
-                <div className="no-data"><p>User tidak ditemukan.</p></div>
-              )}
             </div>
             
             <div className="pagination-controls">
@@ -209,9 +251,13 @@ function UserManagementPage() {
       <ConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={handleCloseConfirmModal}
-        onConfirm={handleConfirmDelete}
-        title="Konfirmasi Hapus User"
-        message={`Apakah Anda yakin ingin menghapus user "${userToDelete?.Name}"?`}
+        onConfirm={handleConfirmAction}
+        title={actionType === 'delete' ? 'Konfirmasi Arsip User' : 'Konfirmasi Aktivasi User'}
+        message={
+          actionType === 'delete' 
+          ? `Apakah Anda yakin ingin mengarsipkan user "${userToAction?.Name}"?`
+          : `Apakah Anda yakin ingin mengaktifkan kembali user "${userToAction?.Name}"?`
+        }
       />
     </div>
   );
