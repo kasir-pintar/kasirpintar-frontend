@@ -1,10 +1,5 @@
-// LOKASI: src/services/api.js
 import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // URL dasar backend Go Anda
-});
-
+const api = axios.create({ baseURL: 'http://localhost:8080/api' });
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
@@ -13,9 +8,16 @@ api.interceptors.request.use(
     }
     return config;
   },
+  (error) => Promise.reject(error)
+);
+api.interceptors.response.use(
+  (response) => response,
   (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('authToken');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
-
 export default api;

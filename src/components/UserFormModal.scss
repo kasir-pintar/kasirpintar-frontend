@@ -1,0 +1,103 @@
+// LOKASI: src/components/UserFormModal.scss
+.user-form-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.user-form-modal {
+  width: 90%;
+  max-width: 500px;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  outline: none;
+  
+  h2 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+}
+
+.user-form {
+  .form-row {
+    display: flex;
+    gap: 20px;
+    .form-group {
+      flex: 1;
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #fff;
+      box-sizing: border-box; // Menambahkan ini untuk konsistensi
+    }
+
+    input:disabled {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+    }
+  }
+
+  .actions-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+
+    button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+    }
+    
+    .button-primary {
+      background-color: #007bff;
+      color: white;
+      &:hover {
+        background-color: #0056b3;
+      }
+      &:disabled {
+        background-color: #007bff;
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+    }
+    
+    .button-secondary {
+      background-color: #6c757d;
+      color: white;
+      &:hover {
+        background-color: #5a6268;
+      }
+    }
+  }
+}
