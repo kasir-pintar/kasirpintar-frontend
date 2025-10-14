@@ -1,4 +1,4 @@
-// LOKASI: src/components/Sidebar/Sidebar.jsx
+// LOKASI: src/components/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -10,9 +10,9 @@ import {
   FaTags, 
   FaUtensils, 
   FaUsers, 
-  // FaStoreAlt, // <-- DIHAPUS UNTUK SEMENTARA
   FaSignOutAlt, 
-  FaTimes 
+  FaTimes,
+  FaUserEdit // <-- IMPORT BARU
 } from 'react-icons/fa';
 import './Sidebar.scss';
 
@@ -70,9 +70,10 @@ function Sidebar({ isOpen, toggle }) {
             <NavLink to="/admin/users" onClick={toggle}><FaUsers /> Manajemen User</NavLink>
           )}
 
-          {/* {userRole === 'admin' && (
-            <NavLink to="/admin/outlets" onClick={toggle}><FaStoreAlt /> Manajemen Outlet</NavLink>
-          )} */} {/* <-- DIHAPUS UNTUK SEMENTARA */}
+          {/* --- LINK PROFIL BARU DITAMBAHKAN DI SINI --- */}
+          {/* Link ini akan muncul untuk semua peran yang sudah login */}
+          <NavLink to="/profile" onClick={toggle}><FaUserEdit /> Profil Saya</NavLink>
+
         </nav>
         <div className="sidebar-footer">
           <button onClick={handleLogout}><FaSignOutAlt /> Logout</button>
