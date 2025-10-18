@@ -23,7 +23,7 @@ function LoginPage() {
         const decodedToken = jwtDecode(token);
         const userRole = decodedToken.role;
 
-        if (userRole === 'admin' || userRole === 'manager') {
+        if (userRole === 'admin' || userRole === 'branch_manager') {
           navigate('/dashboard');
         } else {
           navigate('/cashier');

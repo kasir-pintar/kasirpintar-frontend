@@ -25,7 +25,7 @@ function ManagerDashboardPage() {
     if (token) {
         try {
             const decoded = jwtDecode(token);
-            setManagerName(decoded.name || 'Manager');
+            setManagerName(decoded.name || 'branch_manager');
         } catch (e) { console.error("Invalid Token"); }
     }
 

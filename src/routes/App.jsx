@@ -37,15 +37,15 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/cashier" element={<PrivateRoute allowedRoles={['cashier', 'admin', 'manager']}><CashierPage /></PrivateRoute>} />
+        <Route path="/cashier" element={<PrivateRoute allowedRoles={['cashier', 'admin', 'branch_manager']}><CashierPage /></PrivateRoute>} />
         
         {/* --- GRUP RUTE BARU UNTUK PROFIL --- */}
         {/* Diletakkan di sini agar bisa diakses semua peran yang menggunakan MainLayout */}
-        <Route element={<PrivateRoute allowedRoles={['admin', 'manager', 'cashier']}><MainLayout /></PrivateRoute>}>
+        <Route element={<PrivateRoute allowedRoles={['admin', 'branch_manager', 'cashier']}><MainLayout /></PrivateRoute>}>
             <Route path="/profile" element={<ProfilePage />} />
         </Route>
 
-        <Route element={<PrivateRoute allowedRoles={['admin', 'manager']}><MainLayout /></PrivateRoute>}>
+        <Route element={<PrivateRoute allowedRoles={['admin', 'branch_manager']}><MainLayout /></PrivateRoute>}>
           <Route path="/dashboard" element={<DashboardIndexPage />} />
           <Route path="/transactions" element={<TransactionHistoryPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />

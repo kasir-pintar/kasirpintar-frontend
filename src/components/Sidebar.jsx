@@ -61,7 +61,7 @@ function Sidebar({ isOpen, toggle }) {
           )}
 
           {/* == MENU HANYA UNTUK MANAJER == */}
-          {userRole === 'manager' && (
+          {userRole === 'branch_manager' && (
             <>
               <NavLink to="/dashboard" end onClick={toggle}><FaTachometerAlt /> Dashboard</NavLink>
               <NavLink to="/management/menus" onClick={toggle}><FaUtensils /> Manajemen Menu</NavLink>

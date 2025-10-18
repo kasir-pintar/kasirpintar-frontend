@@ -152,7 +152,7 @@ function UserManagementPage() {
   const isActionDisabled = (targetUser) => {
     if (!currentUser) return true;
     if (targetUser.ID === currentUser.id) return true;
-    if (currentUser.role === 'manager' && targetUser.Role !== 'cashier') return true;
+    if (currentUser.role === 'branch_manager' && targetUser.Role !== 'cashier') return true;
     return false;
   };
   
@@ -225,7 +225,7 @@ function UserManagementPage() {
                             <button className="action-btn restore-btn" onClick={() => handleRestoreRequest(user)}>
                               <FaTrashRestore /> Aktifkan
                             </button>
-                            {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+                            {(currentUser?.role === 'admin' || currentUser?.role === 'branch_manager') && (
                               <button className="action-btn permanent-delete-btn" onClick={() => handlePermanentDeleteRequest(user)}>
                                 <FaExclamationTriangle /> Hapus Permanen
                               </button>
