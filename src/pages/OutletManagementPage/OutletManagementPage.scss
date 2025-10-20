@@ -1,0 +1,106 @@
+.page-container {
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  
+  h1 {
+    font-size: 1.8rem;
+    color: #333;
+  }
+}
+
+.add-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+}
+
+.page-content {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  thead {
+    background-color: #f9f9f9;
+    th {
+      color: #555;
+      font-weight: 600;
+    }
+  }
+}
+
+.action-cell {
+  .action-btn {
+    margin-right: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f1f1f1;
+    }
+
+    &.edit-btn { color: #007bff; }
+    &.delete-btn { color: #dc3545; }
+  }
+}
+
+.no-data {
+    text-align: center;
+    padding: 3rem;
+    color: #888;
+    
+    svg {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    p {
+        font-size: 1.1rem;
+    }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

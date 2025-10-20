@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { Navigate } from 'react-router-dom';
-import AdminDashboardPage from './AdminDashboard';
+
+// --- PERBAIKAN: Impor semua jenis dashboard ---
+import OwnerDashboardPage from './OwnerDashboard';
 import ManagerDashboardPage from './ManagerDashboard';
 
 function DashboardIndexPage() {
@@ -17,38 +19,37 @@ function DashboardIndexPage() {
         const decoded = jwtDecode(token);
         setUserRole(decoded.role);
       } catch (error) {
-        console.error("Invalid token:", error);
-        // If the token is invalid, the role will remain null
+        console.error("Token tidak valid:", error);
       }
     }
     setLoading(false);
   }, []);
 
   if (loading) {
-    return <div style={{ padding: '30px' }}>Loading...</div>;
+    return <div style={{ padding: '30px' }}>Memuat...</div>;
   }
 
   if (!userRole) {
-    // Redirect to login if no token or token is invalid
     return <Navigate to="/login" />;
   }
 
-  // **UPDATED LOGIC HERE**
+  // --- PERBAIKAN UTAMA: Logika Switch Diperbarui ---
   switch (userRole) {
+    // Admin dan Owner melihat dashboard yang sama (dengan filter)
     case 'admin':
-      return <AdminDashboardPage />;
-    
-    // Both 'owner' and 'branch_manager' will see the same dashboard
     case 'owner':
+      return <OwnerDashboardPage />;
+    
+    // Branch Manager melihat dashboard sederhana miliknya
     case 'branch_manager':
       return <ManagerDashboardPage />;
 
-    // Redirect other roles (like 'cashier') to their default page
+    // Kasir tidak punya dashboard, arahkan ke halaman kasir
     case 'cashier':
       return <Navigate to="/cashier" />;
 
     default:
-      // Fallback for any other unexpected roles
+      // Untuk peran lain yang tidak terduga, kembalikan ke login
       return <Navigate to="/login" />;
   }
 }

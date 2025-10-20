@@ -13,8 +13,7 @@ import {
   FaStoreAlt,
   FaSignOutAlt, 
   FaTimes,
-  FaUserEdit,
-  FaCogs // Icon baru untuk Admin
+  FaUserEdit
 } from 'react-icons/fa';
 import './Sidebar.scss';
 
@@ -40,6 +39,13 @@ function Sidebar({ isOpen, toggle }) {
     navigate('/login');
   };
 
+  // Fungsi untuk menutup sidebar saat link di-klik (berguna di mobile)
+  const handleLinkClick = () => {
+    if (isOpen) {
+      toggle();
+    }
+  };
+
   return (
     <>
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -48,34 +54,26 @@ function Sidebar({ isOpen, toggle }) {
           <button className="close-btn" onClick={toggle}><FaTimes /></button>
         </div>
         <nav className="sidebar-nav">
-          {/* --- LOGIKA BARU DENGAN MENU TERPISAH --- */}
-
-          {/* == MENU HANYA UNTUK ADMIN == */}
-          {userRole === 'admin' && (
+          {/* --- MENU LEVEL MANAGER KE ATAS (branch_manager, owner, admin) --- */}
+          {(userRole === 'admin' || userRole === 'owner' || userRole === 'branch_manager') && (
             <>
-              <NavLink to="/dashboard" end onClick={toggle}><FaTachometerAlt /> Dashboard Admin</NavLink>
-              {/* Di sini kita bisa tambahkan menu khusus Admin di masa depan */}
-              {/* <NavLink to="/admin/outlets" onClick={toggle}><FaStoreAlt /> Manajemen Outlet</NavLink> */}
-              {/* <NavLink to="/admin/settings" onClick={toggle}><FaCogs /> Pengaturan Sistem</NavLink> */}
+              <NavLink to="/dashboard" end onClick={handleLinkClick}><FaTachometerAlt /> Dashboard</NavLink>
+              <NavLink to="/users" onClick={handleLinkClick}><FaUsers /> Manajemen Staf</NavLink>
+              <NavLink to="/management/menus" onClick={handleLinkClick}><FaUtensils /> Manajemen Menu</NavLink>
+              <NavLink to="/promotions" onClick={handleLinkClick}><FaTags /> Manajemen Promosi</NavLink>
+              <NavLink to="/analytics" onClick={handleLinkClick}><FaLightbulb /> Analitik</NavLink>
+              <NavLink to="/reports" onClick={handleLinkClick}><FaChartLine /> Laporan</NavLink>
+              <NavLink to="/transactions" onClick={handleLinkClick}><FaHistory /> Riwayat Transaksi</NavLink>
             </>
           )}
 
-          {/* == MENU HANYA UNTUK MANAJER == */}
-          {userRole === 'branch_manager' && (
-            <>
-              <NavLink to="/dashboard" end onClick={toggle}><FaTachometerAlt /> Dashboard</NavLink>
-              <NavLink to="/management/menus" onClick={toggle}><FaUtensils /> Manajemen Menu</NavLink>
-              <NavLink to="/promotions" onClick={toggle}><FaTags /> Manajemen Promosi</NavLink>
-              <NavLink to="/analytics" onClick={toggle}><FaLightbulb /> Prediksi Penjualan</NavLink>
-              <NavLink to="/reports" onClick={toggle}><FaChartLine /> Laporan Operasional</NavLink>
-              <NavLink to="/admin/users" onClick={toggle}><FaUsers /> Manajemen User</NavLink>
-            </>
+          {/* --- MENU LEVEL OWNER KE ATAS (owner, admin) --- */}
+          {(userRole === 'admin' || userRole === 'owner') && (
+            <NavLink to="/outlets" onClick={handleLinkClick}><FaStoreAlt /> Manajemen Outlet</NavLink>
           )}
-          
-          {/* == MENU BERSAMA UNTUK SEMUA PERAN (TERMASUK KASIR) == */}
-          <NavLink to="/transactions" onClick={toggle}><FaHistory /> Riwayat Transaksi</NavLink>
-          <NavLink to="/profile" onClick={toggle}><FaUserEdit /> Profil Saya</NavLink>
 
+          {/* --- MENU BERSAMA UNTUK SEMUA PERAN YANG LOGIN --- */}
+          <NavLink to="/profile" onClick={handleLinkClick}><FaUserEdit /> Profil Saya</NavLink>
         </nav>
         <div className="sidebar-footer">
           <button onClick={handleLogout}><FaSignOutAlt /> Logout</button>

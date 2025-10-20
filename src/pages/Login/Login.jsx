@@ -1,6 +1,5 @@
 // LOKASI: src/pages/Login/Login.jsx
 import React, { useState } from 'react';
-// Import 'Link' dari react-router-dom
 import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import api from '../../services/api';
@@ -10,11 +9,14 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // Tambahan untuk loading state
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true); // Mulai loading
+
     try {
       const response = await api.post('/login', { email, password });
       if (response.data.token) {
@@ -23,14 +25,28 @@ function LoginPage() {
         const decodedToken = jwtDecode(token);
         const userRole = decodedToken.role;
 
-        if (userRole === 'admin' || userRole === 'branch_manager') {
-          navigate('/dashboard');
-        } else {
-          navigate('/cashier');
+        // --- PERBAIKAN UTAMA DI SINI ---
+        // Mengganti if/else dengan switch yang lebih jelas
+        switch (userRole) {
+          case 'admin':
+          case 'owner':
+          case 'branch_manager':
+            navigate('/dashboard');
+            break;
+          case 'cashier':
+            navigate('/cashier');
+            break;
+          default:
+            // Fallback jika ada peran yang tidak dikenali
+            navigate('/');
+            break;
         }
       }
     } catch (err) {
-      setError('Email atau password salah.');
+      const errorMessage = err.response?.data?.error || 'Email atau password salah.';
+      setError(errorMessage);
+    } finally {
+      setLoading(false); // Selesai loading, baik berhasil maupun gagal
     }
   };
 
@@ -49,12 +65,12 @@ function LoginPage() {
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           {error && <p className="error-message">{error}</p>}
-          <button type="submit" className="login-button">Login</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Memproses...' : 'Login'}
+          </button>
         </form>
         
-        {/* --- TOMBOL KEMBALI DITAMBAHKAN DI SINI --- */}
         <Link to="/" className="back-link">Kembali ke Halaman Utama</Link>
-
       </div>
     </div>
   );
