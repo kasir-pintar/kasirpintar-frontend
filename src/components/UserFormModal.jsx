@@ -1,138 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import Modal from 'react-modal';
-import { toast } from 'react-toastify';
-import api from '../services/api';
+import { FaTimes, FaSave } from 'react-icons/fa';
 import './UserFormModal.scss';
 
-Modal.setAppElement('#root');
+function UserFormModal({ isOpen, onClose, onSubmit, initialData, currentUserRole, outlets }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('cashier');
+  const [outletId, setOutletId] = useState('');
+  const [errors, setErrors] = useState({});
 
-function UserFormModal({ isOpen, onClose, onSubmit, initialData, currentUser }) {
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'cashier', outlet_id: '' });
-  const [outlets, setOutlets] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [managerOutletName, setManagerOutletName] = useState('');
   const isEditing = !!initialData;
 
   useEffect(() => {
-    const fetchOutlets = async () => {
-      try {
-        const response = await api.get('/outlets/');
-        const outletsData = response.data || [];
-        setOutlets(outletsData);
-
-        if (currentUser?.role === 'manager') {
-            const managerOutlet = outletsData.find(o => o.ID === currentUser.outlet_id);
-            setManagerOutletName(managerOutlet?.Name || 'Outlet Saya');
-        }
-      } catch (error) {
-        toast.error("Gagal memuat daftar outlet.");
-      }
-    };
-
     if (isOpen) {
-      if (outlets.length === 0) {
-        fetchOutlets();
-      }
-
       if (isEditing) {
-        setFormData({
-          name: initialData.Name || '',
-          email: initialData.Email || '',
-          password: '',
-          role: initialData.Role || 'cashier',
-          outlet_id: initialData.OutletID || ''
-        });
+        setName(initialData.Name || '');
+        setEmail(initialData.Email || '');
+        setRole(initialData.Role || 'cashier');
+        setOutletId(initialData.OutletID || '');
       } else {
-        const newOutletId = currentUser?.role === 'manager' ? currentUser.outlet_id : '';
-        const defaultRole = currentUser?.role === 'manager' ? 'cashier' : 'cashier';
-        setFormData({ name: '', email: '', password: '', role: defaultRole, outlet_id: newOutletId });
+        setName('');
+        setEmail('');
+        setPassword('');
+        setRole('cashier');
+        setOutletId('');
       }
+      setPassword('');
+      setErrors({});
     }
-  }, [isOpen, initialData, isEditing, currentUser, outlets.length]);
+  }, [isOpen, isEditing, initialData]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const validate = () => {
+    const newErrors = {};
+    if (!name.trim()) newErrors.name = 'Nama tidak boleh kosong';
+    if (!email.trim()) newErrors.email = 'Email tidak boleh kosong';
+    if (!isEditing && !password) newErrors.password = 'Password wajib diisi untuk user baru';
+    if ((currentUserRole === 'owner' || currentUserRole === 'admin') && !outletId) {
+      newErrors.outletId = 'Outlet harus dipilih';
+    }
+    return newErrors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (!formData.outlet_id) {
-        toast.error("Outlet wajib diisi.");
-        return;
-    }
-    if (!isEditing && !formData.password) {
-      toast.error("Password wajib diisi untuk user baru.");
+    const formErrors = validate();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
       return;
     }
-    setLoading(true);
-    try {
-      const payload = { ...formData };
-      if (isEditing && !payload.password) {
-        delete payload.password;
-      }
-      payload.outlet_id = parseInt(payload.outlet_id, 10);
-      await onSubmit(payload);
-    } catch (error) {
-       // Error toast ditangani di halaman utama
-    } finally {
-      setLoading(false);
+    
+    const payload = {
+      name,
+      email,
+      password,
+      role,
+      outlet_id: (currentUserRole === 'owner' || currentUserRole === 'admin') ? parseInt(outletId, 10) : 0,
+    };
+
+    if (isEditing && !payload.password) {
+      delete payload.password;
     }
+
+    onSubmit(payload);
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Modal isOpen={isOpen} onRequestClose={onClose} className="user-form-modal" overlayClassName="user-form-modal-overlay">
-      <h2>{isEditing ? 'Edit User' : 'Tambah User Baru'}</h2>
-      <form onSubmit={handleSubmit} className="user-form">
-        <div className="form-group">
-          <label htmlFor="name">Nama Lengkap</label>
-          <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required autoFocus />
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{isEditing ? 'Edit Staf' : 'Tambah Staf Baru'}</h2>
+          <button onClick={onClose} className="close-button">&times;</button>
         </div>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} placeholder={isEditing ? 'Kosongkan jika tidak ingin diubah' : ''} required={!isEditing} />
-        </div>
-        <div className="form-row">
+        <form onSubmit={handleFormSubmit} className="user-form">
           <div className="form-group">
-            <label htmlFor="role">Peran (Role)</label>
-            <select id="role" name="role" value={formData.role} onChange={handleChange} disabled={currentUser?.role === 'manager'}>
-              {currentUser?.role === 'manager' ? (
-                <option value="cashier">Kasir</option>
-              ) : (
-                <>
-                  <option value="cashier">Kasir</option>
-                  <option value="manager">Manajer</option>
-                  <option value="admin">Admin</option>
-                </>
-              )}
-            </select>
+            <label htmlFor="name">Nama Lengkap</label>
+            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            {errors.name && <p className="error-message">{errors.name}</p>}
           </div>
           <div className="form-group">
-            <label htmlFor="outlet_id">Outlet</label>
-            {currentUser?.role === 'manager' ? (
-              <input type="text" value={managerOutletName} disabled />
-            ) : (
-              <select id="outlet_id" name="outlet_id" value={formData.outlet_id} onChange={handleChange} required>
-                <option value="" disabled>Pilih Outlet</option>
-                {outlets.map(outlet => (
-                  <option key={outlet.ID} value={outlet.ID}>{outlet.Name}</option>
-                ))}
+            <label htmlFor="email">Email</label>
+            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            {errors.email && <p className="error-message">{errors.email}</p>}
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isEditing ? 'Kosongkan jika tidak diubah' : ''} />
+            {errors.password && <p className="error-message">{errors.password}</p>}
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="role">Peran (Role)</label>
+              <select id="role" value={role} onChange={(e) => setRole(e.target.value)}>
+                {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
+                  <>
+                    <option value="cashier">Kasir</option>
+                    <option value="branch_manager">Branch Manager</option>
+                  </>
+                )}
+                {currentUserRole === 'branch_manager' && (
+                  <option value="cashier">Kasir</option>
+                )}
               </select>
+            </div>
+            {(currentUserRole === 'owner' || currentUserRole === 'admin') && (
+              <div className="form-group">
+                <label htmlFor="outlet_id">Outlet</label>
+                <select id="outlet_id" value={outletId} onChange={(e) => setOutletId(e.target.value)} required>
+                  <option value="" disabled>Pilih Outlet</option>
+                  {outlets.map(outlet => (
+                    <option key={outlet.ID} value={outlet.ID}>{outlet.Name}</option>
+                  ))}
+                </select>
+                {errors.outletId && <p className="error-message">{errors.outletId}</p>}
+              </div>
             )}
           </div>
-        </div>
-        <div className="actions-row">
-          <button type="button" onClick={onClose} className="button-secondary">Batal</button>
-          <button type="submit" className="button-primary" disabled={loading}>
-            {loading ? 'Menyimpan...' : 'Simpan'}
-          </button>
-        </div>
-      </form>
-    </Modal>
+          <div className="actions-row">
+            <button type="button" onClick={onClose} className="button-secondary">Batal</button>
+            <button type="submit" className="button-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 

@@ -1,9 +1,10 @@
 // LOKASI: src/services/user.js
 import api from './api';
 
+// URL diubah dari /admin/users menjadi /users
 export const getAllUsers = async () => {
   try {
-    const response = await api.get('/admin/users');
+    const response = await api.get('/users');
     return response.data;
   } catch (error) {
     console.error("Gagal mengambil data user:", error);
@@ -11,9 +12,10 @@ export const getAllUsers = async () => {
   }
 };
 
+// URL diubah dari /admin/users/archived menjadi /users/archived
 export const getArchivedUsers = async () => {
   try {
-    const response = await api.get('/admin/users/archived');
+    const response = await api.get('/users/archived');
     return response.data;
   } catch (error) {
     console.error("Gagal mengambil data arsip user:", error);
@@ -21,9 +23,11 @@ export const getArchivedUsers = async () => {
   }
 };
 
-export const createUser = async (userData) => {
+// Menggunakan nama fungsi registerUser agar konsisten dengan backend
+// URL diubah dari /admin/users menjadi /users
+export const registerUser = async (userData) => {
   try {
-    const response = await api.post('/admin/users', userData);
+    const response = await api.post('/users', userData);
     return response.data;
   } catch (error) {
     console.error("Gagal membuat user:", error);
@@ -31,9 +35,10 @@ export const createUser = async (userData) => {
   }
 };
 
+// URL diubah dari /admin/users/:id menjadi /users/:id
 export const updateUser = async (userId, userData) => {
   try {
-    const response = await api.put(`/admin/users/${userId}`, userData);
+    const response = await api.put(`/users/${userId}`, userData);
     return response.data;
   } catch (error) {
     console.error("Gagal memperbarui user:", error);
@@ -41,9 +46,10 @@ export const updateUser = async (userId, userData) => {
   }
 };
 
+// URL diubah dari /admin/users/:id menjadi /users/:id
 export const deleteUser = async (userId) => {
   try {
-    const response = await api.delete(`/admin/users/${userId}`);
+    const response = await api.delete(`/users/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Gagal menghapus user:", error);
@@ -51,9 +57,10 @@ export const deleteUser = async (userId) => {
   }
 };
 
+// URL diubah dari /admin/users/:id/restore menjadi /users/:id/restore
 export const restoreUser = async (userId) => {
   try {
-    const response = await api.patch(`/admin/users/${userId}/restore`);
+    const response = await api.patch(`/users/${userId}/restore`);
     return response.data;
   } catch (error) {
     console.error("Gagal mengembalikan user:", error);
@@ -61,9 +68,10 @@ export const restoreUser = async (userId) => {
   }
 };
 
+// URL diubah dari /admin/users/:id/permanent menjadi /users/:id/permanent
 export const permanentDeleteUser = async (userId) => {
     try {
-      const response = await api.delete(`/admin/users/${userId}/permanent`);
+      const response = await api.delete(`/users/${userId}/permanent`);
       return response.data;
     } catch (error) {
       console.error("Gagal menghapus user permanen:", error);
@@ -71,6 +79,7 @@ export const permanentDeleteUser = async (userId) => {
     }
 };
 
+// Fungsi ini sudah benar, tidak perlu diubah
 export const changePassword = async (passwordData) => {
     try {
       const response = await api.patch('/users/me/password', passwordData);
