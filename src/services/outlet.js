@@ -2,9 +2,9 @@
 import api from './api';
 
 // Mengambil semua outlet
-export const getAllOutlets = async () => {
+export const getAllOutlets = async (params) => {
   try {
-    const response = await api.get('/outlets');
+    const response = await api.get('/outlets', { params }); // Kirim params ke API
     return response.data;
   } catch (error) {
     console.error("Gagal mengambil data outlet:", error);

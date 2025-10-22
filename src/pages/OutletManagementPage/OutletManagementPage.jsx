@@ -1,27 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { getAllOutlets, createOutlet, updateOutlet, deleteOutlet } from '../../services/outlet';
 import OutletFormModal from '../../components/OutletFormModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
-import { FaPlus, FaEdit, FaTrash, FaStoreAlt } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaStoreAlt, FaSearch } from 'react-icons/fa';
 import './OutletManagementPage.scss';
 
 function OutletManagementPage() {
+    // =========================================
+    // BAGIAN STATE
+    // =========================================
     const [outlets, setOutlets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setFormOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
     const [selectedOutlet, setSelectedOutlet] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
+    // =========================================
+    // BAGIAN FETCH DATA
+    // =========================================
     const loadOutlets = async () => {
         setLoading(true);
         try {
             const response = await getAllOutlets();
-            // 'response' adalah { data: [...] }
-            // 'response.data' adalah array [...]
-            setOutlets(response.data || []); // Benar: akses .data sekali saja
+            setOutlets(response.data || []);
         } catch (error) {
             toast.error("Gagal memuat data outlet.");
+            setOutlets([]);
         } finally {
             setLoading(false);
         }
@@ -31,6 +39,9 @@ function OutletManagementPage() {
         loadOutlets();
     }, []);
 
+    // =========================================
+    // BAGIAN HANDLERS (Create, Update, Delete)
+    // =========================================
     const handleOpenForm = (outlet = null) => {
         setSelectedOutlet(outlet);
         setFormOpen(true);
@@ -42,8 +53,9 @@ function OutletManagementPage() {
     };
 
     const handleSave = async (data) => {
-        const action = selectedOutlet ? updateOutlet(selectedOutlet.ID, data) : createOutlet(data);
-        const message = selectedOutlet ? "Outlet berhasil diperbarui!" : "Outlet berhasil ditambahkan!";
+        const isEditing = !!selectedOutlet;
+        const action = isEditing ? updateOutlet(selectedOutlet.ID, data) : createOutlet(data);
+        const message = isEditing ? "Outlet berhasil diperbarui!" : "Outlet berhasil ditambahkan!";
 
         try {
             await action;
@@ -51,7 +63,7 @@ function OutletManagementPage() {
             loadOutlets();
             handleCloseForm();
         } catch (error) {
-            toast.error("Gagal menyimpan outlet.");
+            toast.error(error.response?.data?.error || "Gagal menyimpan outlet.");
         }
     };
 
@@ -66,6 +78,7 @@ function OutletManagementPage() {
     };
 
     const handleDelete = async () => {
+        if (!selectedOutlet) return;
         try {
             await deleteOutlet(selectedOutlet.ID);
             toast.success("Outlet berhasil dihapus!");
@@ -76,46 +89,106 @@ function OutletManagementPage() {
         }
     };
 
+    // =========================================
+    // LOGIKA FILTER & PAGINATION (CLIENT-SIDE)
+    // =========================================
+    const filteredOutlets = useMemo(() => {
+        if (!Array.isArray(outlets)) return [];
+        return outlets.filter(outlet =>
+            (outlet.Name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (outlet.Address?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (outlet.Phone?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (outlet.Manager?.Name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+        );
+    }, [outlets, searchTerm]);
+
+    const paginatedOutlets = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredOutlets.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredOutlets, currentPage, itemsPerPage]);
+
+    const totalPages = Math.ceil(filteredOutlets.length / itemsPerPage);
+
+    const handleItemsPerPageChange = (e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    };
+
+    // =========================================
+    // BAGIAN RENDER (JSX)
+    // =========================================
     return (
         <div className="page-container">
             <header className="page-header">
                 <h1>Manajemen Outlet</h1>
                 <button onClick={() => handleOpenForm()} className="add-btn"><FaPlus /> Tambah Outlet</button>
             </header>
-
+            
             <div className="page-content">
-                {loading ? <p>Memuat data...</p> : outlets.length === 0 ? (
-                    <div className="no-data">
-                        <FaStoreAlt />
-                        <p>Belum ada data outlet. Silakan tambahkan outlet baru.</p>
+                <div className="table-controls">
+                    <div className="search-input">
+                        <FaSearch className="search-icon" />
+                        <input 
+                            type="text" 
+                            placeholder="Cari outlet atau manajer..." 
+                            value={searchTerm} 
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} 
+                        />
                     </div>
-                ) : (
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nama Outlet</th>
-                                <th>Alamat</th>
-                                <th>Telepon</th>
-                                <th>Manajer</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {outlets.map(outlet => (
-                                <tr key={outlet.ID}>
-                                    <td>{outlet.Name}</td>      {/* <-- Ubah n menjadi N */}
-                                    <td>{outlet.Address}</td>  {/* <-- Ubah a menjadi A */}
-                                    <td>{outlet.Phone}</td>    {/* <-- Ubah p menjadi P */}
-                                    <td>{outlet.Manager?.Name || 'N/A'}</td>
-                                    <td className="action-cell">
-                                        <button onClick={() => handleOpenForm(outlet)} className="action-btn edit-btn"><FaEdit /></button>
-                                        <button onClick={() => handleOpenConfirm(outlet)} className="action-btn delete-btn"><FaTrash /></button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
+                    <div className="items-per-page-selector">
+                        <label htmlFor="items-per-page">Tampilkan:</label>
+                        <select id="items-per-page" value={itemsPerPage} onChange={handleItemsPerPageChange}>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                {loading ? (<p>Memuat data...</p>) 
+                    : filteredOutlets.length === 0 ? (
+                        <div className="no-data"><FaStoreAlt /><p>Tidak ada outlet yang cocok dengan pencarian Anda.</p></div>
+                    ) : (
+                        <>
+                            <div className="table-wrapper">
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Nama Outlet</th>
+                                            <th>Alamat</th>
+                                            <th>Telepon</th>
+                                            <th>Manajer</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {paginatedOutlets.map((outlet, index) => (
+                                            <tr key={outlet.ID}>
+                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                                                <td>{outlet.Name}</td>
+                                                <td>{outlet.Address}</td>
+                                                <td>{outlet.Phone}</td>
+                                                <td>{outlet.Manager?.Name || 'N/A'}</td>
+                                                <td className="action-cell">
+                                                    <button onClick={() => handleOpenForm(outlet)} className="action-btn edit-btn"><FaEdit /> Edit</button>
+                                                    <button onClick={() => handleOpenConfirm(outlet)} className="action-btn delete-btn"><FaTrash /> Hapus</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="pagination-controls">
+                                <span>Halaman {currentPage} dari {totalPages > 0 ? totalPages : 1}</span>
+                                <div className="pagination-buttons">
+                                    <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Sebelumnya</button>
+                                    <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages || totalPages === 0}>Berikutnya</button>
+                                </div>
+                            </div>
+                        </>
+                    )}
             </div>
 
             {isFormOpen && (
@@ -126,7 +199,7 @@ function OutletManagementPage() {
                     initialData={selectedOutlet}
                 />
             )}
-
+            
             {isConfirmOpen && (
                 <ConfirmationModal
                     isOpen={isConfirmOpen}
