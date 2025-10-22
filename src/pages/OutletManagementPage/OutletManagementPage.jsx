@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { getAllOutlets, createOutlet, updateOutlet, deleteOutlet } from '../../services/outlet'; 
+import { getAllOutlets, createOutlet, updateOutlet, deleteOutlet } from '../../services/outlet';
 import OutletFormModal from '../../components/OutletFormModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { FaPlus, FaEdit, FaTrash, FaStoreAlt } from 'react-icons/fa';
@@ -17,7 +17,9 @@ function OutletManagementPage() {
         setLoading(true);
         try {
             const response = await getAllOutlets();
-            setOutlets(response.data.data || []);
+            // 'response' adalah { data: [...] }
+            // 'response.data' adalah array [...]
+            setOutlets(response.data || []); // Benar: akses .data sekali saja
         } catch (error) {
             toast.error("Gagal memuat data outlet.");
         } finally {
@@ -80,7 +82,7 @@ function OutletManagementPage() {
                 <h1>Manajemen Outlet</h1>
                 <button onClick={() => handleOpenForm()} className="add-btn"><FaPlus /> Tambah Outlet</button>
             </header>
-            
+
             <div className="page-content">
                 {loading ? <p>Memuat data...</p> : outlets.length === 0 ? (
                     <div className="no-data">
@@ -94,15 +96,17 @@ function OutletManagementPage() {
                                 <th>Nama Outlet</th>
                                 <th>Alamat</th>
                                 <th>Telepon</th>
+                                <th>Manajer</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             {outlets.map(outlet => (
                                 <tr key={outlet.ID}>
-                                    <td>{outlet.name}</td>
-                                    <td>{outlet.address}</td>
-                                    <td>{outlet.phone}</td>
+                                    <td>{outlet.Name}</td>      {/* <-- Ubah n menjadi N */}
+                                    <td>{outlet.Address}</td>  {/* <-- Ubah a menjadi A */}
+                                    <td>{outlet.Phone}</td>    {/* <-- Ubah p menjadi P */}
+                                    <td>{outlet.Manager?.Name || 'N/A'}</td>
                                     <td className="action-cell">
                                         <button onClick={() => handleOpenForm(outlet)} className="action-btn edit-btn"><FaEdit /></button>
                                         <button onClick={() => handleOpenConfirm(outlet)} className="action-btn delete-btn"><FaTrash /></button>
@@ -115,21 +119,21 @@ function OutletManagementPage() {
             </div>
 
             {isFormOpen && (
-                 <OutletFormModal
+                <OutletFormModal
                     isOpen={isFormOpen}
                     onClose={handleCloseForm}
                     onSubmit={handleSave}
                     initialData={selectedOutlet}
                 />
             )}
-           
+
             {isConfirmOpen && (
                 <ConfirmationModal
                     isOpen={isConfirmOpen}
                     onClose={handleCloseConfirm}
                     onConfirm={handleDelete}
                     title="Konfirmasi Hapus"
-                    message={`Anda yakin ingin menghapus outlet "${selectedOutlet?.name}"?`}
+                    message={`Anda yakin ingin menghapus outlet "${selectedOutlet?.Name}"?`}
                 />
             )}
         </div>

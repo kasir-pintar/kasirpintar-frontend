@@ -89,3 +89,14 @@ export const changePassword = async (passwordData) => {
       throw error.response?.data?.error || "Gagal menghubungi layanan.";
     }
 };
+
+export const getAvailableManagers = async () => {
+  try {
+    // Memanggil endpoint baru yang kita buat di backend
+    const response = await api.get('/users/managers');
+    return response.data;
+  } catch (error) {
+    console.error("Gagal mengambil data manajer:", error);
+    throw error.response?.data?.error || "Gagal menghubungi layanan.";
+  }
+};
