@@ -32,14 +32,15 @@ export const createPromotion = async (promotionData) => {
   }
 };
 
-export const updatePromotionStatus = async (promoId, status) => {
-  try {
-    const response = await api.patch(`/promotions/${promoId}/status`, { status });
-    return response.data;
-  } catch (error) {
-    console.error("Gagal memperbarui status promosi:", error);
-    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
-  }
+export const updatePromotionStatus = async (promoId, statusPayload) => { // (Nama variabel diubah agar lebih jelas)
+  try {
+    // PERBAIKAN: Kirim 'statusPayload' langsung sebagai body
+    const response = await api.patch(`/promotions/${promoId}/status`, statusPayload); // <-- BENAR
+    return response.data;
+  } catch (error) {
+    console.error("Gagal memperbarui status promosi:", error);
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
+  }
 };
 
 export const applyVoucher = async (code) => {

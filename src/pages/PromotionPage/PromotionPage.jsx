@@ -1,160 +1,188 @@
-// LOKASI: src/pages/PromotionPage/PromotionPage.jsx
 import React, { useState, useEffect } from 'react';
+// --- Pastikan path service benar ---
 import { getAllPromotions, updatePromotionStatus, getPromotionById } from '../../services/promotion';
+// --- Pastikan path komponen modal benar ---
 import CreatePromotionModal from '../../components/CreatePromotionModal';
 import ViewVouchersModal from '../../components/ViewVouchersModal';
 import './PromotionPage.scss';
 import { FaPlus, FaTicketAlt, FaPercent, FaMoneyBillWave, FaToggleOn, FaToggleOff, FaEye } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-// Komponen Kartu Promosi dengan semua tombol aksi
+// Komponen Kartu Promosi (Tidak ada perubahan di sini, sudah benar)
 const PromotionCard = ({ promo, onStatusChange, onViewVouchers }) => {
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-  
-  // PERBAIKAN: Menggunakan promo.Type dan promo.Value
-  const getPromoValue = () => promo.Type === 'PERCENTAGE' ? `${promo.Value}%` : `Rp ${parseInt(promo.Value).toLocaleString('id-ID')}`;
+    const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    
+    // Gunakan promo.Type dan promo.Value
+    const getPromoValue = () => {
+        // Handle jika Value null atau undefined
+        const value = promo.Value ?? 0;
+        return promo.Type === 'PERCENTAGE' ? `${value}%` : `Rp ${parseInt(value).toLocaleString('id-ID')}`;
+    }
 
-  return (
-    // PERBAIKAN: Menggunakan promo.Status
-    <div className={`promo-card status-${promo.Status.toLowerCase()}`}>
-      <div className="promo-card-header">
-        <span className="promo-icon">{promo.Type === 'PERCENTAGE' ? <FaPercent /> : <FaMoneyBillWave />}</span>
-        <span className={`promo-status`}>{promo.Status}</span>
-      </div>
-      {/* PERBAIKAN: Menggunakan promo.Name, promo.Value, promo.Description */}
-      <h4 className="promo-name">{promo.Name}</h4>
-      <p className="promo-value">{getPromoValue()}</p>
-      <p className="promo-description">{promo.Description}</p>
-      <div className="promo-date-footer">
-        <span>Berlaku:</span>
-        {/* PERBAIKAN: start_date dan end_date tetap huruf kecil sesuai model */}
-        <p>{formatDate(promo.start_date)} - {formatDate(promo.end_date)}</p>
-      </div>
-      <div className="promo-actions-footer">
-        {/* PERBAIKAN: Menggunakan promo.ID */}
-        <button className="btn-view" onClick={() => onViewVouchers(promo.ID)}>
-            <FaEye /> Lihat Voucher
-        </button>
-        {promo.Status === 'INACTIVE' ? (
-          <button className="btn-activate" onClick={() => onStatusChange(promo.ID, 'ACTIVE')}>
-            <FaToggleOn /> Aktifkan
-          </button>
-        ) : (
-          <button className="btn-deactivate" onClick={() => onStatusChange(promo.ID, 'INACTIVE')}>
-            <FaToggleOff /> Nonaktifkan
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    return (
+        // Gunakan promo.Status
+        <div className={`promo-card status-${promo.Status?.toLowerCase() || 'inactive'}`}> {/* Fallback status */}
+            <div className="promo-card-header">
+                <span className="promo-icon">{promo.Type === 'PERCENTAGE' ? <FaPercent /> : <FaMoneyBillWave />}</span>
+                <span className={`promo-status`}>{promo.Status || 'Inactive'}</span> {/* Fallback status */}
+            </div>
+            {/* Gunakan promo.Name, promo.Value, promo.Description */}
+            <h4 className="promo-name">{promo.Name || 'Nama Promosi'}</h4> {/* Fallback nama */}
+            <p className="promo-value">{getPromoValue()}</p>
+            <p className="promo-description">{promo.Description || '-'}</p> {/* Fallback deskripsi */}
+            <div className="promo-date-footer">
+                <span>Berlaku:</span>
+                {/* start_date dan end_date tetap huruf kecil (sesuai JSON dari Go tanpa tag) */}
+                <p>{formatDate(promo.start_date)} - {formatDate(promo.end_date)}</p>
+            </div>
+            <div className="promo-actions-footer">
+                {/* Gunakan promo.ID */}
+                <button className="btn-view" onClick={() => onViewVouchers(promo.ID)}>
+                    <FaEye /> Lihat Voucher
+                </button>
+                {promo.Status === 'INACTIVE' ? (
+                    <button className="btn-activate" onClick={() => onStatusChange(promo.ID, 'ACTIVE')}>
+                        <FaToggleOn /> Aktifkan
+                    </button>
+                ) : (
+                    <button className="btn-deactivate" onClick={() => onStatusChange(promo.ID, 'INACTIVE')}>
+                        <FaToggleOff /> Nonaktifkan
+                    </button>
+                )}
+            </div>
+        </div>
+    );
 };
+
 
 // Komponen Halaman Utama
 function PromotionPage() {
-  const [promotions, setPromotions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
-  const [isViewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedPromotion, setSelectedPromotion] = useState(null);
+    const [promotions, setPromotions] = useState([]); // Inisialisasi sudah benar []
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+    const [isViewModalOpen, setViewModalOpen] = useState(false);
+    const [selectedPromotion, setSelectedPromotion] = useState(null);
 
-  const fetchPromotions = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const data = await getAllPromotions();
-      setPromotions(data || []);
-    } catch (err) {
-      setError(err.toString());
-      toast.error("Gagal memuat data promosi.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // --- FUNGSI FETCHPROMOTIONS DIPERBAIKI ---
+    const fetchPromotions = async () => {
+        try {
+            setLoading(true);
+            setError('');
+            // Panggil service, response = { data: [...] }
+            const response = await getAllPromotions();
 
-  useEffect(() => {
-    fetchPromotions();
-  }, []);
+            // --- PERBAIKAN DI SINI ---
+            // Akses array di dalam properti 'data'
+            setPromotions(response.data || []);
+            // --- AKHIR PERBAIKAN ---
 
-  const handleOpenCreateModal = () => setCreateModalOpen(true);
-  const handleCloseCreateModal = () => setCreateModalOpen(false);
+        } catch (err) {
+            const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
+            setError(errorMessage);
+            toast.error(`Gagal memuat data promosi: ${errorMessage}`);
+            setPromotions([]); // Pastikan tetap array jika error
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const handlePromotionCreated = () => {
-    fetchPromotions();
-    toast.success("Promosi baru berhasil dibuat!");
-  };
+    useEffect(() => {
+        fetchPromotions();
+    }, []);
 
-  const handleStatusChange = async (promoId, newStatus) => {
-    try {
-      const updatedPromotion = await updatePromotionStatus(promoId, newStatus);
-      setPromotions(currentPromos => 
-        // PERBAIKAN: Menggunakan p.ID
-        currentPromos.map(p => p.ID === promoId ? updatedPromotion : p)
-      );
-      toast.success(`Status promosi "${updatedPromotion.Name}" berhasil diubah menjadi ${newStatus}.`);
-    } catch (err) {
-      toast.error(`Gagal mengubah status: ${err}`);
-    }
-  };
+    const handleOpenCreateModal = () => setCreateModalOpen(true);
+    const handleCloseCreateModal = () => setCreateModalOpen(false);
 
-  const handleViewVouchers = async (promoId) => {
-    try {
-      const promoData = await getPromotionById(promoId);
-      setSelectedPromotion(promoData);
-      setViewModalOpen(true);
-    } catch (err) {
-      toast.error(`Gagal memuat data voucher: ${err}`);
-    }
-  };
-  
-  const handleCloseViewModal = () => {
-    setViewModalOpen(false);
-    setSelectedPromotion(null);
-  };
+    const handlePromotionCreated = () => {
+        fetchPromotions(); // Muat ulang data
+        toast.success("Promosi baru berhasil dibuat!");
+    };
 
-  return (
-    <div className="promotion-container">
-      <div className="promotion-header">
-        <h1>Manajemen Promosi</h1>
-        <button onClick={handleOpenCreateModal} className="add-promo-btn"><FaPlus /> Buat Promosi Baru</button>
-      </div>
-      <div className="promotion-list">
-        {loading && <p>Memuat data promosi...</p>}
-        {!loading && !error && promotions.length === 0 && (
-          <div className="no-data">
-            <FaTicketAlt />
-            <p>Belum ada promosi yang dibuat.</p>
-            <span>Klik "Buat Promosi Baru" untuk memulai.</span>
-          </div>
-        )}
-        {!loading && promotions.length > 0 && (
-          <div className="promo-grid">
-            {promotions.map(promo => (
-              <PromotionCard 
-                // PERBAIKAN: Menggunakan promo.ID
-                key={promo.ID} 
-                promo={promo} 
-                onStatusChange={handleStatusChange} 
-                onViewVouchers={handleViewVouchers}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-      
-      <CreatePromotionModal 
-        isOpen={isCreateModalOpen}
-        onClose={handleCloseCreateModal} 
-        onPromotionCreated={handlePromotionCreated} 
-      />
+    const handleStatusChange = async (promoId, newStatus) => {
+        try {
+            // Service updatePromotionStatus sudah harusnya mengembalikan { data: {...updatedPromo...} }
+            const response = await updatePromotionStatus(promoId, { status: newStatus }); // Kirim status dalam body
+            const updatedPromotion = response.data; // Akses data dari response
 
-      <ViewVouchersModal
-        isOpen={isViewModalOpen}
-        onClose={handleCloseViewModal}
-        promotion={selectedPromotion}
-      />
-    </div>
-  );
+            setPromotions(currentPromos =>
+                currentPromos.map(p => p.ID === promoId ? updatedPromotion : p)
+            );
+            toast.success(`Status promosi "${updatedPromotion.Name}" berhasil diubah menjadi ${newStatus}.`);
+        } catch (err) {
+             const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
+            toast.error(`Gagal mengubah status: ${errorMessage}`);
+        }
+    };
+
+    const handleViewVouchers = async (promoId) => {
+        try {
+            // Service getPromotionById sudah harusnya mengembalikan { data: {...promoWithVouchers...} }
+            const response = await getPromotionById(promoId);
+            setSelectedPromotion(response.data); // Akses data dari response
+            setViewModalOpen(true);
+        } catch (err) {
+             const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
+            toast.error(`Gagal memuat data voucher: ${errorMessage}`);
+        }
+    };
+
+    const handleCloseViewModal = () => {
+        setViewModalOpen(false);
+        setSelectedPromotion(null);
+    };
+
+
+    // --- RENDER JSX ---
+    return (
+        <div className="promotion-container">
+            <div className="promotion-header">
+                <h1>Manajemen Promosi</h1>
+                <button onClick={handleOpenCreateModal} className="add-promo-btn"><FaPlus /> Buat Promosi Baru</button>
+            </div>
+            <div className="promotion-list">
+                {loading && <p className='loading-text'>Memuat data promosi...</p>}
+                {/* Tampilkan error jika ada */}
+                {!loading && error && <p className="error-message">{error}</p>}
+                {/* Kondisi data kosong */}
+                {!loading && !error && (!Array.isArray(promotions) || promotions.length === 0) && (
+                    <div className="no-data">
+                        <FaTicketAlt />
+                        <p>Belum ada promosi yang dibuat.</p>
+                        <span>Klik "Buat Promosi Baru" untuk memulai.</span>
+                    </div>
+                )}
+                {/* Tampilkan grid jika data ada */}
+                {!loading && !error && Array.isArray(promotions) && promotions.length > 0 && (
+                    <div className="promo-grid">
+                        {/* Sekarang promotions.map() akan bekerja */}
+                        {promotions.map(promo => (
+                            <PromotionCard
+                                key={promo.ID}
+                                promo={promo}
+                                onStatusChange={handleStatusChange}
+                                onViewVouchers={handleViewVouchers}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Modal Create */}
+            <CreatePromotionModal
+                isOpen={isCreateModalOpen}
+                onClose={handleCloseCreateModal}
+                onPromotionCreated={handlePromotionCreated}
+            />
+
+            {/* Modal View Vouchers */}
+            <ViewVouchersModal
+                isOpen={isViewModalOpen}
+                onClose={handleCloseViewModal}
+                promotion={selectedPromotion} // Kirim data promosi lengkap (sudah termasuk voucher)
+            />
+        </div>
+    );
 }
 
 export default PromotionPage;
