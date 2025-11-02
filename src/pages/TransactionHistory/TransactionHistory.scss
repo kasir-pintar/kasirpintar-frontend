@@ -1,52 +1,211 @@
-// LOKASI: src/pages/TransactionHistory/TransactionHistory.scss
-
+/* PERBAIKAN: Semua style dibungkus dalam .history-layout 
+  agar tidak "bocor" ke halaman lain seperti Halaman Kasir.
+*/
 .history-layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
   background-color: #f8f9fa;
   font-family: sans-serif;
-}
 
-.history-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  height: 60px;
-  border-bottom: 1px solid #dee2e6;
-  background-color: #ffffff;
-  flex-shrink: 0;
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;
+    border-bottom: 1px solid #dee2e6;
+    background-color: #ffffff;
+    flex-shrink: 0;
 
-  h1 { 
-    font-size: 1.5em; 
-    margin: 0;
-  }
+    h1 { 
+      font-size: 1.5em; 
+      margin: 0;
+    }
 
-  .back-button {
-    padding: 8px 16px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: background-color 0.2s;
-    
-    &:hover {
-      background-color: #0056b3;
+    .back-button {
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: #0056b3;
+      }
     }
   }
-}
 
-.history-content {
-  padding: 20px;
-  overflow-y: auto;
-  flex-grow: 1;
+  .history-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
 
-  .search-bar {
+    .transaction-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .transaction-item {
+      background-color: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 15px;
+
+      .trx-content {
+        flex-grow: 1;
+      }
+
+      .trx-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+
+        .invoice { font-weight: bold; color: #007bff; font-size: 1.1em; }
+        .date { font-size: 0.9em; color: #6c757d; }
+      }
+
+      .trx-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+
+        .trx-detail {
+          display: flex;
+          flex-direction: column;
+          .label { font-size: 0.8em; color: #6c757d; text-transform: uppercase; }
+          .value { font-weight: bold; }
+          
+          &.discount .value {
+            color: #dc3545;
+          }
+        }
+      }
+
+      .trx-actions {
+        flex-shrink: 0;
+        padding-top: 5px;
+        
+        .reprint-button {
+          padding: 8px 16px;
+          font-size: 0.9em;
+          font-weight: bold;
+          background-color: #17a2b8;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: #138496;
+          }
+        }
+      }
+    }
+
+    .loading-text, .error-message, .info-text {
+      text-align: center;
+      color: #6c757d;
+      font-size: 1.1em;
+      padding: 40px 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .error-message {
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    
+    .info-text {
+      color: #004085;
+      background-color: #cce5ff;
+      border-color: #b8daff;
+    }
+  }
+
+  .filter-panel-trx {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     margin-bottom: 20px;
-    input {
+    
+    label {
+      font-size: 1.25em;
+      font-weight: 600;
+      color: #343a40;
+      display: block;
+    }
+    
+    p {
+      margin-top: 5px;
+      margin-bottom: 15px;
+      color: #6c757d;
+      font-size: 0.95em;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
       width: 100%;
+      max-width: 450px;
+      padding: 12px 40px 12px 15px;
+      font-size: 1em;
+      font-weight: 500;
+      color: #495057;
+      background-color: #fff;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 20px 20px;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      
+      &:hover {
+        border-color: #007bff;
+      }
+      
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+      }
+    }
+  }
+
+  .filter-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+
+    .search-input {
+      flex-grow: 1;
+      min-width: 200px;
+    }
+
+    .date-input,
+    .search-input {
+      width: auto;
       padding: 12px;
       font-size: 1rem;
       border: 1px solid #ccc;
@@ -57,67 +216,82 @@
         cursor: not-allowed;
       }
     }
-  }
-
-  .transaction-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .transaction-item {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 15px;
-
-    .trx-content {
-      flex-grow: 1;
+    
+    .date-input {
+      flex-shrink: 0;
+      min-width: 180px;
+      font-family: sans-serif;
     }
 
-    .trx-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-
-      .invoice { font-weight: bold; color: #007bff; font-size: 1.1em; }
-      .date { font-size: 0.9em; color: #6c757d; }
-    }
-
-    .trx-body {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-
-      .trx-detail {
-        display: flex;
-        flex-direction: column;
-        .label { font-size: 0.8em; color: #6c757d; text-transform: uppercase; }
-        .value { font-weight: bold; }
-        
-        &.discount .value { // Tambahkan styling untuk diskon
-          color: #dc3545;
-        }
+    .clear-date-btn {
+      padding: 10px 15px;
+      font-size: 0.9rem;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background-color: #5a6268;
       }
     }
 
-    .trx-actions {
-      flex-shrink: 0;
-      padding-top: 5px;
+    .limit-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
       
-      .reprint-button {
-        padding: 8px 16px;
+      label {
         font-size: 0.9em;
+        color: #6c757d;
+        white-space: nowrap;
+      }
+      
+      select {
+        padding: 11px 8px;
+        border-radius: 5px;
+        border: 1px solid #ced4da;
+        font-size: 0.9em;
+        cursor: pointer;
+        background-color: #fff;
+
+        &:disabled {
+          background-color: #e9ecef;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    padding: 10px 15px;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    
+    .page-nav {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+
+      span {
+        font-weight: 500;
+        color: #495057;
+      }
+    
+      button {
+        padding: 8px 16px;
         font-weight: bold;
-        background-color: #17a2b8;
+        background-color: #007bff;
         color: white;
         border: none;
         border-radius: 5px;
@@ -125,145 +299,95 @@
         transition: background-color 0.2s;
 
         &:hover {
-          background-color: #138496;
+          background-color: #0056b3;
+        }
+
+        &:disabled {
+          background-color: #cce5ff;
+          color: #004085;
+          cursor: not-allowed;
         }
       }
     }
   }
 
-  .loading-text, .error-message, .info-text {
-    text-align: center;
-    color: #6c757d;
-    font-size: 1.1em;
-    padding: 40px 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-  }
-  
-  .error-message {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-  }
-  
-  .info-text {
-    color: #004085;
-    background-color: #cce5ff;
-    border-color: #b8daff;
-  }
-}
-
-// --- 🔹 BLOK BARU UNTUK DESAIN FILTER 🔹 ---
-.filter-panel-trx {
-  // Menggunakan kelas 'card' dari .jsx agar konsisten
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  margin-bottom: 20px;
-  
-  label {
-    font-size: 1.25em;
-    font-weight: 600;
-    color: #343a40;
-    display: block; // Jadikan block agar 'p' di bawahnya
-  }
-  
-  p {
-    margin-top: 5px;
-    margin-bottom: 15px;
-    color: #6c757d; // Abu-abu
-    font-size: 0.95em;
-  }
-
-  // Mendesain ulang <select>
-  select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    
-    width: 100%;
-    max-width: 450px;
-    padding: 12px 40px 12px 15px;
-    font-size: 1em;
-    font-weight: 500;
-    color: #495057;
-    
-    background-color: #fff;
-    border: 1px solid #ced4da;
-    border-radius: 5px;
-    
-    background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%236c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="6 9 12 15 18 9"%3e%3c/polyline%3e%3c/svg%3e');
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 20px 20px;
-    
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    
-    &:hover {
-      border-color: #007bff;
-    }
-    
-    &:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
-    }
-  }
-}
-// --- 🔹 AKHIR BLOK BARU 🔹 ---
-
-
-// --- ATURAN RESPONSIVE (TETAP SAMA) ---
-@media (max-width: 768px) {
-  .history-header {
-    h1 {
-      font-size: 1.2em; // Kecilkan judul di mobile
-    }
-    .back-button {
-      padding: 8px 12px;
-      font-size: 0.9em;
-    }
-  }
-
-  .history-content {
-    padding: 10px;
-  }
-
-  .transaction-item {
-    flex-direction: column; // Tumpuk konten dan tombol secara vertikal
-    align-items: stretch; // Ratakan agar lebar penuh
-
-    .trx-header {
-      flex-direction: column; // Tumpuk no invoice dan tanggal
-      align-items: flex-start;
-      gap: 5px;
+  // --- ATURAN RESPONSIVE (Ikut dibungkus) ---
+  @media (max-width: 768px) {
+    .history-header {
+      h1 {
+        font-size: 1.2em;
+      }
+      .back-button {
+        padding: 8px 12px;
+        font-size: 0.9em;
+      }
     }
 
-    .trx-body {
-      // grid-template-columns: 1fr; // Jadikan satu kolom saja (sebenarnya auto-fit sudah handle ini)
-      gap: 12px;
+    .history-content {
+      padding: 10px;
     }
 
-    .trx-actions {
-      padding-top: 15px;
-      border-top: 1px solid #eee;
-      margin-top: 10px;
+    .transaction-item {
+      flex-direction: column;
+      align-items: stretch;
+      .trx-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+      .trx-body {
+        gap: 12px;
+      }
+      .trx-actions {
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        margin-top: 10px;
+        .reprint-button {
+          width: 100%;
+        }
+      }
+    }
+
+    .filter-panel-trx {
+      padding: 15px;
+      select {
+        max-width: 100%;
+      }
+    }
+
+    .filter-controls {
+      flex-direction: column;
+      align-items: stretch;
       
-      .reprint-button {
-        width: 100%; // Buat tombol menjadi lebar penuh
+      .search-input,
+      .date-input,
+      .clear-date-btn {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .limit-selector {
+        margin-left: 0;
+        width: 100%;
+        
+        select {
+          width: 100%;
+        }
+      }
+    }
+
+    .pagination-controls {
+      .page-nav {
+        gap: 10px;
+        
+        button {
+          padding: 8px 12px;
+        }
+        span {
+          font-size: 0.9em;
+          text-align: center;
+        }
       }
     }
   }
-
-  // Aturan responsive untuk filter panel
-  .filter-panel-trx {
-    padding: 15px;
-    
-    select {
-      max-width: 100%; // Gunakan lebar penuh di mobile
-    }
-  }
-}
+} // --- AKHIR BUNGKUSAN .history-layout ---
