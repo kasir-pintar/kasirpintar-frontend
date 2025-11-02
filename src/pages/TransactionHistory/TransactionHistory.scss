@@ -1,5 +1,5 @@
 /* PERBAIKAN: Semua style dibungkus dalam .history-layout 
-  agar tidak "bocor" ke halaman lain seperti Halaman Kasir.
+   agar tidak "bocor" ke halaman lain seperti Halaman Kasir.
 */
 .history-layout {
   display: flex;
@@ -200,7 +200,10 @@
 
     .search-input {
       flex-grow: 1;
-      min-width: 200px;
+      
+      /* --- 🛑 PERUBAHAN DI SINI 🛑 --- */
+      /* Ukuran minimal diperbesar agar terlihat lebih panjang */
+      min-width: 350px; 
     }
 
     .date-input,
@@ -363,7 +366,7 @@
       .date-input,
       .clear-date-btn {
         width: 100%;
-        min-width: auto;
+        min-width: auto; /* <-- Reset min-width di HP */
       }
 
       .limit-selector {

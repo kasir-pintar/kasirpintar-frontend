@@ -20,6 +20,7 @@ import OperationalReportPage from '../pages/OperationalReportPage/OperationalRep
 import PromotionPage from '../pages/PromotionPage/PromotionPage';
 import MenuManagementPage from '../pages/MenuManagementPage/MenuManagementPage';
 
+// PrivateRoute Anda sudah benar, TIDAK PERLU DIUBAH
 function PrivateRoute({ children, allowedRoles }) {
   const token = localStorage.getItem('authToken');
   if (!token) return <Navigate to="/login" />;
@@ -55,16 +56,18 @@ function App() {
 
         {/* --- Level 1: Hanya bisa diakses oleh Owner & Admin --- */}
         <Route element={<PrivateRoute allowedRoles={['admin', 'owner']}><MainLayout /></PrivateRoute>}>
-          {/* Rute /users dipindahkan dari sini */}
           <Route path="/outlets" element={<OutletManagementPage />} />
         </Route>
 
         {/* --- Level 2: Bisa diakses oleh Manager, Owner, Admin --- */}
         <Route element={<PrivateRoute allowedRoles={['admin', 'owner', 'branch_manager']}><MainLayout /></PrivateRoute>}>
           <Route path="/dashboard" element={<DashboardIndexPage />} />
-          {/* --- PERBAIKAN DI SINI --- */}
-          <Route path="/users" element={<UserManagementPage />} /> {/* <-- Rute dipindahkan ke sini */}
-          <Route path="/transactions" element={<TransactionHistoryPage />} />
+          <Route path="/users" element={<UserManagementPage />} />
+          
+          {/* --- 🛑 PERBAIKAN 1 🛑 --- */}
+          {/* Rute /transactions DIHAPUS DARI SINI */}
+          {/* <Route path="/transactions" element={<TransactionHistoryPage />} /> */}
+          
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/reports" element={<OperationalReportPage />} />
           <Route path="/promotions" element={<PromotionPage />} />
@@ -74,6 +77,11 @@ function App() {
         {/* --- Level 3: Bisa diakses SEMUA peran yang login --- */}
         <Route element={<PrivateRoute allowedRoles={['admin', 'owner', 'branch_manager', 'cashier']}><MainLayout /></PrivateRoute>}>
             <Route path="/profile" element={<ProfilePage />} />
+            
+            {/* --- 🛑 PERBAIKAN 2 🛑 --- */}
+            {/* Rute /transactions DITAMBAHKAN KE SINI */}
+            {/* Sekarang SEMUA role yang diizinkan (termasuk kasir) bisa mengaksesnya */}
+            <Route path="/transactions" element={<TransactionHistoryPage />} />
         </Route>
         
         {/* Rute fallback jika tidak ada yang cocok */}
