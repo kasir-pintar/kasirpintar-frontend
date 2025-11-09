@@ -1,0 +1,64 @@
+// LOKASI: src/components/ExportConfirmationModal.scss (File Baru)
+
+// Class overlay di-rename
+.export-confirmation-modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex; justify-content: center; align-items: center; z-index: 1050;
+}
+
+// Class modal di-rename
+.export-confirmation-modal {
+  width: 90%; max-width: 400px; background: white; padding: 30px;
+  border-radius: 8px; outline: none; text-align: center;
+  
+  // Style di dalamnya tetap sama
+  .confirmation-icon {
+    font-size: 3em;
+    color: #ffc107; // Kita ubah jadi kuning untuk "peringatan"
+    margin-bottom: 15px;
+  }
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: #6c757d;
+    margin-bottom: 25px;
+    font-size: 1.1em;
+    line-height: 1.5;
+  }
+
+  .confirmation-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+
+    button {
+      padding: 10px 25px;
+      font-size: 1em;
+      font-weight: bold;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    // Kita ubah dari 'danger' (merah) ke 'primary' (biru)
+    .btn-danger {
+      background-color: #007bff;
+      color: white;
+    }
+  }
+}
