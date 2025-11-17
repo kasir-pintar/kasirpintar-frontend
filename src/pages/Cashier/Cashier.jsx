@@ -1,21 +1,35 @@
+// LOKASI: src/pages/Cashier/Cashier.jsx (GANTI TOTAL)
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+// --- (Import path Anda sudah benar) ---
 import { fetchMenus, createTransaction } from '../../services/cashier';
-import { applyVoucher } from '../../services/promotion'; // <-- Pastikan path ini benar
+import { applyVoucher } from '../../services/promotion'; 
+// ---
 import { toast } from 'react-toastify';
-import PaymentModal from '../../components/PaymentModal'; // <-- Pastikan path ini benar
-import ReceiptModal from '../../components/ReceiptModal'; // <-- Pastikan path ini benar
-import DiscountModal from '../../components/DiscountModal'; // <-- Pastikan path ini benar
-import CustomerModal from '../../components/CustomerModal'; // <-- Pastikan path ini benar
+import PaymentModal from '../../components/PaymentModal'; 
+import ReceiptModal from '../../components/ReceiptModal'; 
+import DiscountModal from '../../components/DiscountModal'; 
+import CustomerModal from '../../components/CustomerModal'; 
 import './Cashier.scss';
 import { FaTags } from 'react-icons/fa';
 
+// (Helper formatRupiah)
+const formatRupiah = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(number);
+};
+
 function CashierPage() {
+    // (Semua state Anda ... SAMA)
     const navigate = useNavigate();
-    const [menus, setMenus] = useState([]); // Inisialisasi sudah benar []
+    const [menus, setMenus] = useState([]); 
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -35,27 +49,23 @@ function CashierPage() {
     const [voucherError, setVoucherError] = useState("");
     const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
 
-    // --- FUNGSI LOAD MENUS DIPERBAIKI ---
+    // (loadMenus ... SAMA)
     const loadMenus = async () => {
         try {
             setError('');
             setLoading(true);
-            const response = await fetchMenus(); // response berisi { data: [...] }
-
-            // --- PERBAIKAN DI SINI ---
-            // Akses array di dalam properti 'data'
+            const response = await fetchMenus();
             setMenus(response.data || []);
-            // --- AKHIR PERBAIKAN ---
-
         } catch (err) {
             setError('Gagal memuat data menu.');
-            console.error("Fetch menus error:", err); // Log error detail
-            setMenus([]); // Pastikan tetap array jika error
+            console.error("Fetch menus error:", err.message || err); 
+            setMenus([]); 
         } finally {
             setLoading(false);
         }
     };
 
+    // (useEffect ... SAMA)
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (token) {
@@ -68,18 +78,19 @@ function CashierPage() {
             }
         }
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        loadMenus(); // Panggil fungsi loadMenus
+        loadMenus(); 
         return () => clearInterval(timer);
     }, []);
 
+    // (uniqueCategories, filteredMenus, handleLogout ... SAMA)
     const uniqueCategories = useMemo(() => {
-        if (!Array.isArray(menus)) return ['Semua']; // Safety check
+        if (!Array.isArray(menus)) return ['Semua']; 
         const cats = menus.map(menu => menu.Category).filter(Boolean);
         return ['Semua', ...new Set(cats)];
     }, [menus]);
 
     const filteredMenus = useMemo(() => {
-        if (!Array.isArray(menus)) return []; // Safety check
+        if (!Array.isArray(menus)) return []; 
         return menus.filter(menu =>
             (selectedCategory === 'Semua' || menu.Category === selectedCategory) &&
             menu.Name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -88,6 +99,7 @@ function CashierPage() {
 
     const handleLogout = () => { localStorage.removeItem('authToken'); navigate('/login'); };
 
+    // (Fungsi Cart ... SAMA)
     const resetAllDiscounts = () => {
         setManualDiscount(0);
         setAppliedVoucher(null);
@@ -100,19 +112,18 @@ function CashierPage() {
         setCart(currentCart => {
             const existingItem = currentCart.find(item => item.menu_id === menu.ID);
             if (existingItem) {
-                // Pastikan tidak melebihi stok
                 if (existingItem.quantity < menu.Stock) {
                     return currentCart.map(item => item.menu_id === menu.ID ? { ...item, quantity: item.quantity + 1 } : item );
                 } else {
                     toast.warn(`Stok ${menu.Name} tidak mencukupi.`);
-                    return currentCart; // Tidak ada perubahan jika stok habis
+                    return currentCart;
                 }
             } else {
                 if (menu.Stock > 0) {
-                     return [...currentCart, { menu_id: menu.ID, name: menu.Name, price: menu.Price, quantity: 1 }];
+                   return [...currentCart, { menu_id: menu.ID, name: menu.Name, price: menu.Price, quantity: 1 }];
                 } else {
                     toast.warn(`Stok ${menu.Name} habis.`);
-                    return currentCart; // Jangan tambahkan jika stok 0
+                    return currentCart;
                 }
             }
         });
@@ -121,28 +132,22 @@ function CashierPage() {
     const updateQuantity = (menu_id, amount) => {
         resetAllDiscounts();
         setCart(currentCart => {
-            // Cari item menu asli untuk cek stok
             const originalMenu = menus.find(m => m.ID === menu_id);
-            if (!originalMenu) return currentCart; // Safety check
-
+            if (!originalMenu) return currentCart; 
             return currentCart.map(item => {
                 if (item.menu_id === menu_id) {
                     const newQuantity = item.quantity + amount;
-                    // Cek batas bawah (minimal 1) dan batas atas (stok)
-                    if (newQuantity <= 0) {
-                        return null; // Akan difilter
-                    }
+                    if (newQuantity <= 0) { return null; }
                     if (newQuantity > originalMenu.Stock) {
                         toast.warn(`Stok ${item.name} tidak mencukupi.`);
-                        return item; // Jangan ubah jika melebihi stok
+                        return item;
                     }
                     return { ...item, quantity: newQuantity };
                 }
                 return item;
-            }).filter(Boolean); // Hapus item yang null (quantity <= 0)
+            }).filter(Boolean); 
         });
     };
-
 
     const removeFromCart = (menu_id) => {
         resetAllDiscounts();
@@ -155,29 +160,27 @@ function CashierPage() {
         resetAllDiscounts();
     };
 
+    // (Kalkulasi Total ... SAMA)
     const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
 
     const voucherDiscount = useMemo(() => {
         if (!appliedVoucher) return 0;
         const { promotion } = appliedVoucher;
-        if (!promotion) return 0; // Safety check
-
+        if (!promotion) return 0; 
         let discount = 0;
         if (promotion.Type === 'PERCENTAGE') {
             discount = (subtotal * promotion.Value) / 100;
         } else if (promotion.Type === 'FIXED_AMOUNT') {
             discount = promotion.Value;
         }
-        // Pastikan diskon tidak lebih besar dari subtotal
         return Math.min(discount, subtotal);
     }, [appliedVoucher, subtotal]);
 
     const totalDiscount = voucherDiscount + manualDiscount;
-    // Pastikan total tidak negatif
     const grandTotal = Math.max(0, subtotal - totalDiscount);
 
+    // (Fungsi Diskon & Voucher ... SAMA)
     const handleApplyManualDiscount = (discountValue) => {
-        // Pastikan diskon manual tidak lebih besar dari subtotal
         const validDiscount = Math.min(discountValue, subtotal);
         setManualDiscount(validDiscount);
         setAppliedVoucher(null);
@@ -198,7 +201,6 @@ function CashierPage() {
         setIsApplyingVoucher(true);
         setVoucherError("");
         try {
-            // Kirim kode sebagai objek JSON
             const result = await applyVoucher({ code: voucherCode });
             setAppliedVoucher(result);
             setManualDiscount(0);
@@ -220,40 +222,70 @@ function CashierPage() {
         toast.info("Voucher dihapus.");
     };
 
-    const handleProcessTransaction = async (paymentMethod, cashTendered, change) => {
-        if (cart.length === 0) return;
-        const itemsToSubmit = cart.map(({ menu_id, quantity }) => ({ menu_id, quantity }));
-        const transactionData = {
-            items: itemsToSubmit,
-            payment_method: paymentMethod,
-            cash_tendered: cashTendered,
-            change: change,
-            discount: totalDiscount,
-            customer_id: selectedCustomer ? selectedCustomer.ID : null,
-            voucher_id: appliedVoucher ? appliedVoucher.voucher_id : null,
-        };
-        try {
-            // createTransaction mengembalikan { data: {...transaksi...} }
-            const response = await createTransaction(transactionData);
-            setIsPaymentModalOpen(false);
-            // Tambahkan subtotal ke data struk
-            const receiptData = { ...response.data, Subtotal: subtotal };
-            setLastTransaction(receiptData);
-            setIsReceiptModalOpen(true);
-        } catch (err) {
-            toast.error('Gagal memproses transaksi: ' + (err.response?.data?.error || 'Error tidak diketahui'));
-            // Jika error karena stok tidak cukup, muat ulang menu
-             if (err.response?.data?.error && err.response.data.error.includes("stok")) {
-                loadMenus();
-            }
-        }
-    };
+    
+    // --- 🛑 PERBAIKAN UTAMA DI SINI 🛑 ---
+    // Fungsi ini sekarang "pintar" dan bisa menangani Tunai & QRIS
+    const handlePaymentComplete = (transactionData) => {
+        // transactionData:
+        // - Dari Tunai: Objek transaksi LENGKAP dari backend.
+        // - Dari QRIS: Objek MINIMAL: { InvoiceNumber, PaymentMethod, TotalAmount }
+        
+        let finalTransactionData;
 
+        if (transactionData.PaymentMethod === 'QRIS') {
+            // --- Alur QRIS ---
+            // Kita harus BUAT ULANG objek struk secara manual
+            // agar strukturnya sama seperti yang dari backend
+            finalTransactionData = {
+                ...transactionData, // (InvoiceNumber, PaymentMethod, TotalAmount)
+                Subtotal: subtotal,
+                Discount: totalDiscount,
+                User: { Name: cashierName },
+                Customer: selectedCustomer, // (bisa null, tidak apa-apa)
+                Details: cart.map(item => ({
+                    // Strukturnya HARUS cocok dengan apa yang diharapkan ReceiptModal
+                    // (yang meniru struktur backend)
+                    Quantity: item.quantity,
+                    Price: item.price,
+                    Menu: {
+                        Name: item.name
+                    }
+                })),
+                // Data Tunai di-nol-kan
+                CashTendered: 0,
+                Change: 0,
+                // Tambahkan Waktu (WIB)
+                CreatedAt: new Date().toISOString() 
+            };
+        } else {
+            // --- Alur Tunai ---
+            // transactionData sudah lengkap dari backend.
+            // Kita hanya perlu memastikan data User/Customer (jika null)
+            finalTransactionData = {
+                ...transactionData,
+                User: transactionData.User || { Name: cashierName },
+                Customer: transactionData.Customer || selectedCustomer
+            };
+        }
+        
+        // Sekarang, 'finalTransactionData' memiliki struktur yang konsisten
+        // baik untuk Tunai maupun QRIS
+        setLastTransaction(finalTransactionData);
+        
+        setIsPaymentModalOpen(false); // Tutup modal bayar
+        setIsReceiptModalOpen(true); // Buka modal struk
+        
+        clearCart(); // Kosongkan keranjang
+        loadMenus(); // Muat ulang stok menu
+    };
+    
+    // (Fungsi Buka/Tutup Modal - SAMA)
     const openPaymentModal = () => { if (cart.length > 0) { setIsPaymentModalOpen(true); } else { toast.warn('Keranjang masih kosong!'); } };
+    const handleClosePaymentModal = () => setIsPaymentModalOpen(false); 
     const handleNewTransaction = () => { setIsReceiptModalOpen(false); setLastTransaction(null); clearCart(); loadMenus(); };
 
 
-    // --- RENDER JSX ---
+    // --- RENDER JSX (INI ADALAH JSX ASLI ANDA, SUDAH LENGKAP) ---
     return (
         <div className="cashier-layout">
             <header className="cashier-header">
@@ -264,7 +296,6 @@ function CashierPage() {
                 <div className="header-info-right">
                     <span className="realtime-clock">{format(currentTime, 'dd MMM yyyy, HH:mm:ss', { locale: id })}</span>
                     <div className="header-actions">
-                        {/* Ganti Link ke button jika hanya navigasi tanpa state */}
                         <button onClick={() => navigate('/transactions')} className="history-button">Riwayat Transaksi</button>
                         <button onClick={handleLogout} className="logout-button">Logout</button>
                     </div>
@@ -280,14 +311,13 @@ function CashierPage() {
                         </div>
                         <div className="category-tabs">
                             {uniqueCategories.map(category => (
-                                <button key={category} className={`category-tab ${selectedCategory === category ? 'active' : ''}`} onClick={() => setSelectedCategory(category)}>{category || 'Lainnya'}</button> // Handle kategori kosong
+                                <button key={category} className={`category-tab ${selectedCategory === category ? 'active' : ''}`} onClick={() => setSelectedCategory(category)}>{category || 'Lainnya'}</button> 
                             ))}
                         </div>
                     </div>
                     {loading && <p className='loading-text'>Memuat menu...</p>}
                     {error && <p className="error-message">{error}</p>}
                     <div className="menu-grid">
-                        {/* Periksa lagi apakah menus adalah array sebelum map */}
                         {!loading && Array.isArray(filteredMenus) && filteredMenus.map(menu => (
                             <div key={menu.ID} className={`menu-item ${menu.Stock === 0 ? 'out-of-stock' : ''}`} onClick={() => menu.Stock > 0 && addToCart(menu)} title={menu.Stock === 0 ? 'Stok Habis' : ''}>
                                 <p className="menu-name">{menu.Name}</p>
@@ -363,7 +393,25 @@ function CashierPage() {
                 </aside>
             </main>
 
-            <PaymentModal isOpen={isPaymentModalOpen} onRequestClose={() => setIsPaymentModalOpen(false)} totalAmount={grandTotal} onConfirm={handleProcessTransaction} />
+            {/* --- 🛑 PERBAIKAN PANGGILAN MODAL 🛑 --- */}
+            {/* Kita panggil modal baru dengan props yang benar */}
+            {isPaymentModalOpen && (
+                 <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={handleClosePaymentModal}
+                    onPaymentComplete={handlePaymentComplete} // <-- Prop baru
+                    
+                    // Props baru yang dibutuhkan modal
+                    cart={cart}
+                    subtotal={subtotal}
+                    discount={totalDiscount}
+                    total={grandTotal} // <-- 'grandTotal' dipassing sebagai 'total'
+                    customer={selectedCustomer}
+                    voucher={appliedVoucher}
+                />
+            )}
+            {/* --- 🛑 AKHIR PERBAIKAN 🛑 --- */}
+            
             <ReceiptModal isOpen={isReceiptModalOpen} onClose={handleNewTransaction} transactionData={lastTransaction} />
             <DiscountModal isOpen={isDiscountModalOpen} onClose={() => setIsDiscountModalOpen(false)} onApply={handleApplyManualDiscount} currentDiscount={manualDiscount} subtotal={subtotal} />
             <CustomerModal isOpen={isCustomerModalOpen} onClose={() => setIsCustomerModalOpen(false)} onSelectCustomer={setSelectedCustomer} />

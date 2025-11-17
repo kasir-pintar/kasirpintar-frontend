@@ -1,248 +1,319 @@
-// LOKASI: src/components/PaymentModal.jsx (Perbaikan Nama Komponen QR)
+// LOKASI: src/components/PaymentModal.jsx (GANTI TOTAL - PERBAIKAN POLLING)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react'; // Import useRef
 import Modal from 'react-modal';
 import { toast } from 'react-toastify';
-// --- 🛑 PERBAIKAN 1 DI SINI 🛑 ---
-import { QRCodeSVG } from 'qrcode.react'; // Nama komponen yang benar adalah QRCodeSVG
-// --- 🛑 AKHIR PERBAIKAN 🛑 ---
-import { createQRPayment } from '../services/payment';
-import { NumericFormat } from 'react-number-format'; 
+import { QRCodeCanvas } from 'qrcode.react'; 
+import { createTransaction, checkTransactionStatus } from '../services/cashier';
 import './PaymentModal.scss'; 
 
-// Pastikan elemen root Anda benar
-Modal.setAppElement('#root');
+// Helper formatRupiah
+const formatRupiah = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(number);
+};
 
-function PaymentModal({ isOpen, onRequestClose, totalAmount, onConfirm }) {
-  // State untuk metode pembayaran
-  const [paymentMethod, setPaymentMethod] = useState('Tunai');
-  
-  // State untuk Pembayaran Tunai
-  const [cashTendered, setCashTendered] = useState('');
-  const [change, setChange] = useState(0);
-  const [tunaiError, setTunaiError] = useState('');
-
-  // State untuk Pembayaran QRIS
-  const [qrString, setQrString] = useState('');
-  const [orderId, setOrderId] = useState('');
-  const [isLoadingQR, setIsLoadingQR] = useState(false);
-  const [paymentError, setPaymentError] = useState(''); // Error untuk QR/Debit
-
-  // Hitung kembalian (hanya untuk Tunai)
-  useEffect(() => {
-    const cash = parseFloat(cashTendered);
-    if (paymentMethod === 'Tunai' && !isNaN(cash) && cash >= totalAmount) {
-      setChange(cash - totalAmount);
-    } else {
-      setChange(0);
-    }
-  }, [cashTendered, totalAmount, paymentMethod]);
-
-
-  // Fungsi untuk reset state modal saat ditutup
-  const resetModalState = () => {
-    setPaymentMethod('Tunai');
-    setCashTendered('');
-    setChange(0);
-    setTunaiError('');
-    setQrString('');
-    setOrderId('');
-    setIsLoadingQR(false);
-    setPaymentError('');
-  };
-
-  // Fungsi untuk mengambil QR code dari backend
-  const fetchQRCode = async () => {
-    if (totalAmount <= 0) {
-      setPaymentError('Total belanja tidak boleh nol.');
-      return;
-    }
+// --- Komponen Internal untuk Polling QRIS ---
+const QrisPaymentWatcher = ({
+    qrString,
+    invoiceNumber,
+    expiryTime,
+    onPaymentSuccess,
+    onClose
+}) => {
+    const [status, setStatus] = useState('pending');
+    const [error, setError] = useState('');
+    const [timeLeft, setTimeLeft] = useState(900); 
     
-    setIsLoadingQR(true);
-    setPaymentError('');
-    setQrString('');
+    // --- 🛑 PERBAIKAN 1: Gunakan useRef untuk Interval 🛑 ---
+    // Ini memastikan interval bersih saat komponen di-unmount
+    const pollIntervalRef = useRef(null);
 
-    try {
-      const response = await createQRPayment({ total_amount: totalAmount });
-      // Simpan QR string dan Order ID dari backend
-      setQrString(response.data.qr_string);
-      setOrderId(response.data.order_id);
-    } catch (err) {
-      const errorMsg = err.response?.data?.error || 'Gagal membuat QR Code. Coba lagi.';
-      setPaymentError(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      setIsLoadingQR(false);
-    }
-  };
+    // Set countdown timer
+    useEffect(() => {
+        if (expiryTime) {
+            const expiry = new Date(expiryTime);
+            const now = new Date();
+            const secondsRemaining = Math.floor((expiry - now) / 1000);
+            setTimeLeft(secondsRemaining > 0 ? secondsRemaining : 0);
+        }
+    }, [expiryTime]);
 
-  // useEffect ini akan berjalan saat user mengganti metode pembayaran
-  useEffect(() => {
-    // Reset error & input saat ganti tab
-    setTunaiError('');
-    setPaymentError('');
+    // Countdown logic
+    useEffect(() => {
+        if (timeLeft <= 0) {
+            setError("Waktu pembayaran habis. Silakan tutup dan ulangi transaksi.");
+            if (pollIntervalRef.current) {
+                 clearInterval(pollIntervalRef.current); // Stop polling
+            }
+            return;
+        }
+        const timer = setInterval(() => {
+            setTimeLeft((t) => t - 1);
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [timeLeft]);
 
-    // Jika modal dibuka dan metodenya QRIS, langsung minta QR code
-    if (isOpen && paymentMethod === 'QRIS') {
-      fetchQRCode();
-    }
-    // Jika ganti metode, reset state QR
-    if (paymentMethod !== 'QRIS') {
-      setQrString('');
-      setOrderId('');
-    }
-    // Reset input tunai jika ganti tab
-    if (paymentMethod !== 'Tunai') {
-      setCashTendered('');
-    }
-  }, [paymentMethod, isOpen, totalAmount]); // <-- Tambahkan dependensi
+    // Polling logic
+    useEffect(() => {
+        if (!invoiceNumber) {
+            setError("Invoice number tidak valid, polling dihentikan.");
+            return; // Jangan mulai polling jika invoiceNumber tidak ada
+        }
+        
+        const poll = async () => {
+             // --- 🛑 PERBAIKAN 2: Polling lebih 'bandel' 🛑 ---
+             // Kita tidak akan menghentikan polling jika ada error jaringan
+             try {
+                const res = await checkTransactionStatus(invoiceNumber);
+                if (res.status === 'PAID') {
+                    setStatus('paid');
+                    if (pollIntervalRef.current) {
+                        clearInterval(pollIntervalRef.current); // Stop polling
+                    }
+                    toast.success("Pembayaran QRIS Berhasil!");
+                    setTimeout(onPaymentSuccess, 1000); 
+                }
+                // Jika masih PENDING, biarkan polling berlanjut
+             } catch (err) {
+                // Jangan hentikan polling, biarkan berlanjut
+                console.error("Polling error (akan dicoba lagi):", err); 
+             }
+        };
 
+        // Jalankan polling pertama kali, lalu set interval
+        poll(); 
+        pollIntervalRef.current = setInterval(poll, 3000); // Cek setiap 3 detik
 
-  // Handler untuk tombol "Konfirmasi Pembayaran" (HANYA UNTUK TUNAI)
-  const handleConfirmTunai = () => {
-    const cash = parseFloat(cashTendered);
-    if (isNaN(cash) || cash < totalAmount) {
-      setTunaiError('Uang Diterima harus diisi dan tidak boleh kurang dari total.');
-      return;
-    }
-    // Panggil fungsi onConfirm dari CashierPage
-    onConfirm('Tunai', cash, change);
-    handleClose(); // Reset dan tutup
-  };
-  
-  // Handler untuk tombol "Konfirmasi Pembayaran" (HANYA UNTUK DEBIT)
-  const handleConfirmDebit = () => {
-    // Langsung konfirmasi dengan uang pas
-    onConfirm('Debit', totalAmount, 0);
-    handleClose(); // Reset dan tutup
-  };
+        // Fungsi cleanup
+        return () => {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+            }
+        };
+    }, [invoiceNumber, onPaymentSuccess]); // Hanya bergantung pada 2 ini
 
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    };
 
-  // Handler saat modal ditutup (misal klik overlay)
-  const handleClose = () => {
-    resetModalState();
-    onRequestClose(); // Panggil fungsi penutup dari parent
-  };
-
-  // TODO: Tambahkan fungsi polling untuk cek status 'orderId'
-  // useEffect(() => { ... });
-
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={handleClose}
-      className="payment-modal"
-      overlayClassName="payment-modal-overlay"
-    >
-      <div className="payment-modal-header">
-        <h2>Konfirmasi Pembayaran</h2>
-        <button onClick={handleClose} className="close-button">×</button>
-      </div>
-
-      <div className="payment-modal-body">
-        <div className="payment-total">
-          <span>TOTAL BAYAR:</span>
-          <strong>Rp {totalAmount.toLocaleString('id-ID')}</strong>
-        </div>
-
-        {/* --- Pilihan Metode Pembayaran --- */}
-        <div className="payment-method-selector">
-          <button
-            className={`method-btn ${paymentMethod === 'Tunai' ? 'active' : ''}`}
-            onClick={() => setPaymentMethod('Tunai')}
-          >
-            Tunai
-          </button>
-          <button
-            className={`method-btn ${paymentMethod === 'QRIS' ? 'active' : ''}`}
-            onClick={() => setPaymentMethod('QRIS')}
-          >
-            QRIS
-          </button>
-          <button
-            className={`method-btn ${paymentMethod === 'Debit' ? 'active' : ''}`}
-            onClick={() => setPaymentMethod('Debit')}
-          >
-            Debit
-          </button>
-        </div>
-
-        {/* --- KONTEN DINAMIS BERDASARKAN METODE --- */}
-
-        {/* 1. Tampilan Tunai */}
-        {paymentMethod === 'Tunai' && (
-          <div className="payment-content tunai">
-            {tunaiError && <p className="modal-error-message">{tunaiError}</p>}
-            <div className="form-group">
-              <label htmlFor="cash-tendered">Uang Diterima (Rp)</label>
-              <NumericFormat
-                id="cash-tendered"
-                value={cashTendered}
-                onValueChange={(values) => setCashTendered(values.value)}
-                thousandSeparator="."
-                decimalSeparator=","
-                prefix="Rp "
-                placeholder="Rp 0"
-                autoFocus
-                className="cash-input"
-              />
-            </div>
-            <div className="payment-info kembalian">
-              <span>Kembalian:</span>
-              <strong className={change > 0 ? 'has-change' : ''}>
-                Rp {change.toLocaleString('id-ID')}
-              </strong>
-            </div>
-            <button 
-              className="confirm-button" 
-              onClick={handleConfirmTunai}
-              disabled={parseFloat(cashTendered) < totalAmount}
-            >
-              Konfirmasi Pembayaran
-            </button>
-          </div>
-        )}
-
-        {/* 2. Tampilan QRIS */}
-        {paymentMethod === 'QRIS' && (
-          <div className="payment-content qris">
-            {isLoadingQR && <p className="loading-text">Membuat QR Code...</p>}
-            {paymentError && <p className="modal-error-message">{paymentError}</p>}
-            
-            {qrString && !isLoadingQR && (
-              <div className="qr-container">
-                <p>Silakan pindai QR Code di bawah ini</p>
-                {/* --- 🛑 PERBAIKAN 2 DI SINI 🛑 --- */}
-                <QRCodeSVG value={qrString} size={256} /> 
-                {/* --- 🛑 AKHIR PERBAIKAN 🛑 --- */}
-                <small>Order ID: {orderId}</small>
-                <p className="waiting-text">Menunggu pembayaran...</p>
-                <small>
-                  (Tutup modal ini jika pelanggan sudah membayar. 
-                  Transaksi akan tersimpan otomatis setelah pembayaran terkonfirmasi.)
-                </small>
-              </div>
+    return (
+        <div className="qris-watcher">
+            {status === 'pending' && (
+                <>
+                    <h4>Menunggu Pembayaran...</h4>
+                    <p>Scan QR code di bawah ini.</p>
+                    <div className="qr-container">
+                        <QRCodeCanvas value={qrString} size={256} />
+                    </div>
+                    <h3>Batas Waktu: {formatTime(timeLeft)}</h3>
+                    {error && <p className="error-text">{error}</p>}
+                    <button onClick={onClose} className="btn-secondary">Batalkan Transaksi</button>
+                </>
             )}
-          </div>
-        )}
+            {status === 'paid' && (
+                <div className="payment-success">
+                    <h2 style={{ color: 'green' }}>Pembayaran Berhasil!</h2>
+                    <p>Mempersiapkan struk...</p>
+                </div>
+            )}
+        </div>
+    );
+};
 
-        {/* 3. Tampilan Debit */}
-        {paymentMethod === 'Debit' && (
-          <div className="payment-content debit">
-            <p className="instruction-text">Silakan proses pembayaran di mesin EDC.</p>
-            <button 
-              className="confirm-button" 
-              onClick={handleConfirmDebit}
-            >
-              Pembayaran Selesai (EDC)
-            </button>
-          </div>
-        )}
 
-      </div>
-    </Modal>
-  );
-}
+// --- KOMPONEN UTAMA PaymentModal ---
+const PaymentModal = ({
+    isOpen,
+    onClose,
+    onPaymentComplete, 
+    cart,
+    subtotal,
+    discount,
+    total,
+    customer,
+    voucher
+}) => {
+    const [selectedMethod, setSelectedMethod] = useState('Tunai'); 
+    const [cashTendered, setCashTendered] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [qrisData, setQrisData] = useState(null); 
+    const [paymentError, setPaymentError] = useState('');
+
+    const change = useMemo(() => {
+        const changeVal = cashTendered - total;
+        return changeVal >= 0 ? changeVal : 0;
+    }, [cashTendered, total]);
+
+    useEffect(() => {
+        if (isOpen) {
+            setSelectedMethod('Tunai');
+            setCashTendered(0);
+            setIsLoading(false);
+            setQrisData(null);
+            setPaymentError('');
+        }
+    }, [isOpen]);
+
+    const handleCashChange = (e) => {
+        const value = e.target.value.replace(/\D/g, '');
+        setCashTendered(Number(value) || 0);
+    };
+
+    const handleCashFocus = (e) => { if (e.target.value === '0') e.target.value = ''; };
+    const handleCashBlur = (e) => { if (e.target.value === '') e.target.value = '0'; };
+
+    const handleSubmitPayment = async () => {
+        setIsLoading(true);
+        setPaymentError('');
+
+        const payload = {
+            items: cart.map(item => ({ menu_id: item.menu_id, quantity: item.quantity })),
+            discount: discount,
+            customer_id: customer ? customer.ID : null,
+            voucher_id: voucher ? voucher.voucher_id : null, 
+            payment_method: selectedMethod,
+            cash_tandered: 0,
+            change: 0
+        };
+
+        try {
+            if (selectedMethod === 'Tunai') {
+                if (cashTendered < total) {
+                    toast.error("Uang tunai kurang dari total belanja!");
+                    setIsLoading(false);
+                    return;
+                }
+                payload.cash_tandered = cashTendered;
+                payload.change = change;
+
+                const response = await createTransaction(payload);
+                toast.success("Transaksi Tunai Berhasil!");
+                onPaymentComplete(response.data); 
+
+            } else if (selectedMethod === 'QRIS') {
+                const response = await createTransaction(payload);
+                
+                // --- 🛑 PERBAIKAN 3: Pastikan data ada 🛑 ---
+                if (response.qr_string && response.data && response.data.InvoiceNumber) {
+                    setQrisData({
+                        qrString: response.qr_string,
+                        invoiceNumber: response.data.InvoiceNumber, // Ini yang PENTING
+                        expiry: response.midtrans_response?.expiry_time
+                    });
+                } else {
+                    throw new Error("Gagal mendapatkan data QR Code dari server.");
+                }
+            }
+        } catch (err) {
+            console.error("Payment error:", err);
+            const errorMsg = err.error || "Terjadi kesalahan saat memproses pembayaran.";
+            setPaymentError(errorMsg);
+            toast.error(errorMsg);
+            setIsLoading(false);
+        }
+    };
+
+    const handleQrisSuccess = () => {
+        onPaymentComplete({ 
+            InvoiceNumber: qrisData.invoiceNumber, 
+            PaymentMethod: 'QRIS',
+            TotalAmount: total,
+        });
+    };
+
+    return (
+        <Modal
+            isOpen={isOpen}
+            onRequestClose={onClose} 
+            contentLabel="Modal Pembayaran"
+            className="modal-content payment-modal"
+            overlayClassName="modal-overlay"
+            ariaHideApp={false} 
+        >
+            <div className="modal-header">
+                <h3>Proses Pembayaran</h3>
+                <button onClick={onClose} className="close-button">&times;</button>
+            </div>
+            
+            <div className="modal-body">
+                {!qrisData && (
+                    <>
+                        <div className="payment-summary">
+                            <p>Subtotal: <span>{formatRupiah(subtotal)}</span></p>
+                            <p>Diskon: <span>- {formatRupiah(discount)}</span></p>
+                            <h4 className="total-amount">Total Bayar: <span>{formatRupiah(total)}</span></h4>
+                        </div>
+
+                        <div className="payment-method-selector">
+                            <button
+                                className={`btn-method ${selectedMethod === 'Tunai' ? 'active' : ''}`}
+                                onClick={() => setSelectedMethod('Tunai')}
+                            >
+                                Tunai
+                            </button>
+                            <button
+                                className={`btn-method ${selectedMethod === 'QRIS' ? 'active' : ''}`}
+                                onClick={() => setSelectedMethod('QRIS')}
+                            >
+                                QRIS
+                            </button>
+                        </div>
+
+                        {selectedMethod === 'Tunai' && (
+                            <div className="cash-payment">
+                                <label htmlFor="cashTendered">Uang Diterima (Rp)</label>
+                                <input
+                                    type="text"
+                                    id="cashTendered"
+                                    value={new Intl.NumberFormat('id-ID').format(cashTendered)}
+                                    onChange={handleCashChange}
+                                    onFocus={handleCashFocus}
+                                    onBlur={handleCashBlur}
+                                    disabled={isLoading}
+                                    className="cash-input"
+                                />
+                                <h4 className="total-amount">Kembalian: <span>{formatRupiah(change)}</span></h4>
+                            </div>
+                        )}
+
+                        {selectedMethod === 'QRIS' && (
+                            <div className="qris-payment-info">
+                                <p>Pembayaran akan diproses menggunakan QRIS.</p>
+                            </div>
+                        )}
+
+                        {paymentError && <p className="error-text">{paymentError}</p>}
+
+                        <div className="modal-footer">
+                            <button
+                                onClick={handleSubmitPayment}
+                                className="btn-primary"
+                                disabled={isLoading || (selectedMethod === 'Tunai' && cashTendered < total)}
+                            >
+                                {isLoading ? "Memproses..." : (selectedMethod === 'Tunai' ? "Bayar Tunai" : "Buat Kode QRIS")}
+                            </button>
+                        </div>
+                    </>
+                )}
+
+                {qrisData && (
+                    <QrisPaymentWatcher
+                        qrString={qrisData.qrString}
+                        invoiceNumber={qrisData.invoiceNumber}
+                        expiryTime={qrisData.expiry}
+                        onPaymentSuccess={handleQrisSuccess}
+                        onClose={onClose}
+                    />
+                )}
+            </div>
+        </Modal>
+    );
+};
 
 export default PaymentModal;

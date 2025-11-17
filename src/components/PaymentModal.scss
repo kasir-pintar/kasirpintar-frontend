@@ -1,190 +1,182 @@
-// LOKASI: src/components/PaymentModal.scss (KODE LENGKAP & FINAL)
+// LOKASI: src/components/PaymentModal.scss (GANTI TOTAL)
+// Ini adalah SCSS untuk MODAL BARU di atas
 
-.payment-modal-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex; justify-content: center; align-items: center; z-index: 1050;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.payment-modal {
+.modal-content.payment-modal { 
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
   width: 90%;
   max-width: 450px;
-  background: #fff;
-  border-radius: 8px;
   outline: none;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  font-family: sans-serif;
-  
-  .payment-modal-header {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+  .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 25px;
     border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
 
-    h2 {
-      margin: 0;
-      font-size: 1.25rem;
-    }
+    h3 { margin: 0; font-size: 1.5rem; }
+    
     .close-button {
-      background: none; border: none; font-size: 1.8rem;
-      cursor: pointer; color: #888; padding: 0;
-      line-height: 1;
+      background: none; border: none; font-size: 2rem;
+      cursor: pointer; color: #aaa; line-height: 1;
       &:hover { color: #333; }
     }
   }
 
-  .payment-modal-body {
-    padding: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .payment-total {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 1.2rem;
-    padding-bottom: 15px;
-    border-bottom: 1px dashed #ccc;
-
-    strong {
-      font-size: 1.8rem;
-      color: #007bff;
-    }
-  }
-
-  .payment-method-selector {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-
-    .method-btn {
-      padding: 12px;
-      font-size: 1rem;
-      font-weight: bold;
-      border: 2px solid #ced4da;
-      background-color: #f8f9fa;
-      color: #495057;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.2s;
-
-      &:hover {
-        background-color: #e9ecef;
-      }
-
-      &.active {
-        background-color: #007bff;
-        color: white;
-        border-color: #007bff;
-      }
-    }
-  }
-
-  .payment-content {
-    min-height: 250px;
-    display: flex;
-    flex-direction: column;
+  .modal-body {
+    font-size: 1.1rem;
     
-    // Konten QRIS & Debit
-    &.qris, &.debit {
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: 15px;
-    }
-
-    // Konten Tunai
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+    .payment-summary {
       margin-bottom: 15px;
-
-      label {
-        font-weight: bold;
-        font-size: 0.9rem;
+      p {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+        font-size: 1rem;
       }
-      .cash-input { // Terapkan style ke input NumericFormat
-        padding: 12px;
-        font-size: 1.2rem;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        text-align: right;
+      .total-amount {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin-top: 10px;
+        color: #007bff;
+        border-top: 1px dashed #ccc;
+        padding-top: 10px;
       }
     }
 
-    .payment-info.kembalian {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      font-size: 1.1rem;
+    .payment-method-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr; 
+      gap: 10px;
       margin-bottom: 20px;
 
-      strong {
-        font-size: 1.5rem;
-        color: #888; // Default abu-abu
-        &.has-change {
-          color: #28a745; // Hijau jika ada kembalian
+      .btn-method {
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: bold;
+        border: 2px solid #ced4da;
+        background-color: #f8f9fa;
+        color: #495057;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover { background-color: #e9ecef; }
+        &.active {
+          background-color: #007bff;
+          color: white;
+          border-color: #007bff;
         }
       }
     }
 
-    .confirm-button {
-      width: 100%;
-      padding: 15px;
-      font-size: 1rem;
-      font-weight: bold;
-      background-color: #28a745;
-      color: white;
-      border: none;
+    .cash-payment {
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+      .cash-input {
+        width: 100%;
+        padding: 10px;
+        font-size: 1.5rem;
+        text-align: right;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box; 
+        margin-bottom: 10px;
+      }
+    }
+    
+    .qris-payment-info {
+      text-align: center;
+      padding: 20px;
+      background: #f4f4f4;
       border-radius: 5px;
-      cursor: pointer;
-      margin-top: auto; // Dorong ke bawah
-
-      &:disabled {
-        background-color: #aaa;
-        cursor: not-allowed;
-      }
     }
     
-    .instruction-text {
-      font-size: 1.1em;
-      color: #333;
-    }
-
-    // --- Style QR Code ---
-    .qr-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-
-      p { margin: 0; }
-      small { font-size: 0.8em; color: #888; }
-      .waiting-text {
-        font-weight: bold;
-        color: #ffc107; // Kuning "Menunggu"
-        margin-top: 10px;
-      }
-    }
-
-    .loading-text { font-weight: bold; text-align: center; }
-    
-    // Ini untuk error di Tunai
-    .modal-error-message {
-      background-color: #f8d7da;
-      color: #721c24;
+    .error-text {
+      color: #dc3545;
+      background: #f8d7da;
       border: 1px solid #f5c6cb;
       padding: 10px;
       border-radius: 5px;
-      margin-bottom: 15px;
       text-align: center;
-      font-size: 0.9em;
+      margin: 15px 0 0 0;
+      font-size: 0.9rem;
+    }
+
+    .modal-footer {
+      margin-top: 20px;
+      .btn-primary {
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        
+        &:disabled {
+          background-color: #aaa;
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    // --- Style untuk QRIS Watcher ---
+    .qris-watcher {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      
+      h4 { margin-top: 0; }
+      
+      .qr-container {
+        margin: 15px 0;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+      }
+      
+      h3 { // Batas Waktu
+        color: #dc3545;
+        font-size: 1.5rem;
+      }
+      
+      .btn-secondary {
+        margin-top: 10px;
+        background: #6c757d;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        &:hover { background: #5a6268; }
+      }
     }
   }
 }
