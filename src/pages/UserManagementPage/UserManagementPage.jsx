@@ -49,7 +49,7 @@ function UserManagementPage() {
       try {
         if (currentUser.role === 'owner' || currentUser.role === 'admin') {
           const outletRes = await getAllOutlets();
-          setOutlets(outletRes.data.data || []);
+          setOutlets(outletRes || []);
         }
 
         const usersRes = view === 'active' ? await getAllUsers() : await getArchivedUsers();

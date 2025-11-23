@@ -1,5 +1,5 @@
 // LOKASI: src/pages/Dashboard/ManagerDashboard.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom'; // Pastikan useNavigate di-import
 import { getDashboardSummary } from '../../services/dashboard';
 import { Bar, Pie } from 'react-chartjs-2';
@@ -7,6 +7,8 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, T
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { jwtDecode } from 'jwt-decode'; // Pastikan jwtDecode di-import
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import './ManagerDashboard.scss';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
@@ -19,6 +21,7 @@ function ManagerDashboardPage() {
   const [managerName, setManagerName] = useState('');
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const dashboardRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('authToken');
@@ -100,6 +103,41 @@ function ManagerDashboardPage() {
     return `${start} - ${end}`;
   };
 
+  const exportToPDF = async () => {
+    if (!dashboardRef.current) return;
+    try {
+      const element = dashboardRef.current;
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgWidth = pageWidth;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`dashboard-manager-${new Date().toISOString().slice(0,10)}.pdf`);
+    } catch (err) {
+      console.error('Gagal mengekspor PDF:', err);
+      alert('Terjadi kesalahan saat mengekspor PDF. Cek console untuk detail.');
+    }
+  };
+
   if (error) return <div className="dashboard-layout"><div className="dashboard-container"><p className="error-message">{error}</p></div></div>;
 
   return (
@@ -115,10 +153,11 @@ function ManagerDashboardPage() {
             <span>sampai</span>
             <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} dateFormat="dd/MM/yyyy" className="date-input"/>
           </div>
+          <button className="export-pdf-btn" onClick={exportToPDF}>Export PDF</button>
         </div>
       </header>
 
-      <main className="dashboard-container">
+      <main className="dashboard-container" ref={dashboardRef}>
         {loading ? <p>Memuat data...</p> : (
           <>
             <div className="summary-cards">

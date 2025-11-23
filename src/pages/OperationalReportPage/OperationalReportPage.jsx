@@ -117,7 +117,7 @@ function OperationalReportPage() {
     const fetchOutlets = async () => {
       try {
         const res = await getAllOutlets();
-        setOutlets(res.data || []);
+        setOutlets(res || []);
       } catch (err) {
         console.error('Gagal memuat outlet:', err);
         toast.error('Gagal memuat daftar outlet.');

@@ -7,9 +7,10 @@ import ViewVouchersModal from '../../components/ViewVouchersModal';
 import './PromotionPage.scss';
 import { FaPlus, FaTicketAlt, FaPercent, FaMoneyBillWave, FaToggleOn, FaToggleOff, FaEye } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode';
 
 // Komponen Kartu Promosi (Tidak ada perubahan di sini, sudah benar)
-const PromotionCard = ({ promo, onStatusChange, onViewVouchers }) => {
+const PromotionCard = ({ promo, onStatusChange, onViewVouchers, canEdit }) => {
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     
     // Gunakan promo.Type dan promo.Value
@@ -40,7 +41,7 @@ const PromotionCard = ({ promo, onStatusChange, onViewVouchers }) => {
                 <button className="btn-view" onClick={() => onViewVouchers(promo.ID)}>
                     <FaEye /> Lihat Voucher
                 </button>
-                {promo.Status === 'INACTIVE' ? (
+                {canEdit && (promo.Status === 'INACTIVE' ? (
                     <button className="btn-activate" onClick={() => onStatusChange(promo.ID, 'ACTIVE')}>
                         <FaToggleOn /> Aktifkan
                     </button>
@@ -48,7 +49,7 @@ const PromotionCard = ({ promo, onStatusChange, onViewVouchers }) => {
                     <button className="btn-deactivate" onClick={() => onStatusChange(promo.ID, 'INACTIVE')}>
                         <FaToggleOff /> Nonaktifkan
                     </button>
-                )}
+                ))}
             </div>
         </div>
     );
@@ -63,6 +64,15 @@ function PromotionPage() {
     const [isCreateModalOpen, setCreateModalOpen] = useState(false);
     const [isViewModalOpen, setViewModalOpen] = useState(false);
     const [selectedPromotion, setSelectedPromotion] = useState(null);
+    // Tentukan role user dari token
+    const token = localStorage.getItem('authToken');
+    let userRole = '';
+    try {
+        if (token) userRole = jwtDecode(token).role || '';
+    } catch (err) {
+        console.error('Gagal decode token:', err);
+    }
+    const canEdit = (userRole && (userRole === 'owner' || userRole === 'admin'));
 
     // --- FUNGSI FETCHPROMOTIONS DIPERBAIKI ---
     const fetchPromotions = async () => {
@@ -72,10 +82,9 @@ function PromotionPage() {
             // Panggil service, response = { data: [...] }
             const response = await getAllPromotions();
 
-            // --- PERBAIKAN DI SINI ---
-            // Akses array di dalam properti 'data'
-            setPromotions(response.data || []);
-            // --- AKHIR PERBAIKAN ---
+            // Service mungkin mengembalikan array langsung atau objek { data: [...] }
+            const promos = response?.data || response || [];
+            setPromotions(Array.isArray(promos) ? promos : (promos.data || []));
 
         } catch (err) {
             const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
@@ -103,10 +112,10 @@ function PromotionPage() {
         try {
             // Service updatePromotionStatus sudah harusnya mengembalikan { data: {...updatedPromo...} }
             const response = await updatePromotionStatus(promoId, { status: newStatus }); // Kirim status dalam body
-            const updatedPromotion = response.data; // Akses data dari response
+            const updatedPromotion = response?.data || response;
 
             setPromotions(currentPromos =>
-                currentPromos.map(p => p.ID === promoId ? updatedPromotion : p)
+                currentPromos.map(p => p.ID === promoId ? (updatedPromotion || p) : p)
             );
             toast.success(`Status promosi "${updatedPromotion.Name}" berhasil diubah menjadi ${newStatus}.`);
         } catch (err) {
@@ -119,7 +128,7 @@ function PromotionPage() {
         try {
             // Service getPromotionById sudah harusnya mengembalikan { data: {...promoWithVouchers...} }
             const response = await getPromotionById(promoId);
-            setSelectedPromotion(response.data); // Akses data dari response
+            setSelectedPromotion(response?.data || response); // Akses data dari response
             setViewModalOpen(true);
         } catch (err) {
              const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
@@ -138,7 +147,9 @@ function PromotionPage() {
         <div className="promotion-container">
             <div className="promotion-header">
                 <h1>Manajemen Promosi</h1>
-                <button onClick={handleOpenCreateModal} className="add-promo-btn"><FaPlus /> Buat Promosi Baru</button>
+                {canEdit && (
+                    <button onClick={handleOpenCreateModal} className="add-promo-btn"><FaPlus /> Buat Promosi Baru</button>
+                )}
             </div>
             <div className="promotion-list">
                 {loading && <p className='loading-text'>Memuat data promosi...</p>}
@@ -162,6 +173,7 @@ function PromotionPage() {
                                 promo={promo}
                                 onStatusChange={handleStatusChange}
                                 onViewVouchers={handleViewVouchers}
+                                canEdit={canEdit}
                             />
                         ))}
                     </div>
@@ -169,11 +181,13 @@ function PromotionPage() {
             </div>
 
             {/* Modal Create */}
-            <CreatePromotionModal
-                isOpen={isCreateModalOpen}
-                onClose={handleCloseCreateModal}
-                onPromotionCreated={handlePromotionCreated}
-            />
+            {canEdit && (
+                <CreatePromotionModal
+                    isOpen={isCreateModalOpen}
+                    onClose={handleCloseCreateModal}
+                    onPromotionCreated={handlePromotionCreated}
+                />
+            )}
 
             {/* Modal View Vouchers */}
             <ViewVouchersModal

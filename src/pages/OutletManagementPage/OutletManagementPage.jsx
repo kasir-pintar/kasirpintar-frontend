@@ -26,7 +26,7 @@ function OutletManagementPage() {
         setLoading(true);
         try {
             const response = await getAllOutlets();
-            setOutlets(response.data || []);
+            setOutlets(response || []);
         } catch (error) {
             toast.error("Gagal memuat data outlet.");
             setOutlets([]);

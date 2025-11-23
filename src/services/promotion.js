@@ -1,82 +1,54 @@
-// LOKASI: src/services/promotion.js (GANTI TOTAL)
+import api from './api';
 
-import axios from 'axios';
-
-const getAuthToken = () => localStorage.getItem('authToken');
-
-// --- 🛑 PERBAIKAN VITE ADA DI SINI 🛑 ---
-const getApiUrl = () => import.meta.env.VITE_API_URL || 'http://localhost:8080/api'; 
-// --- 🛑 AKHIR PERBAIKAN 🛑 ---
-
-const authApi = () => {
-    const token = getAuthToken();
-    return axios.create({
-        baseURL: getApiUrl(),
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    });
-};
-
-/**
- * FUNGSI UNTUK CreatePromotionModal
- */
-export const createPromotion = async (promotionData) => {
-    try {
-        const response = await authApi().post('/promotions', promotionData);
-        return response.data;
-    } catch (error) {
-        console.error("Error creating promotion:", error.message || error);
-        throw error.response?.data || error;
-    }
-};
-
-/**
- * FUNGSI UNTUK CashierPage
- */
-export const applyVoucher = async (voucherData) => {
-    try {
-        const response = await authApi().post('/promotions/apply', voucherData); 
-        return response.data;
-    } catch (error) { 
-        console.error("Error applying voucher:", error.message || error);
-        throw error.response?.data || error;
-    }
-}
-
-/**
- * FUNGSI LAINNYA
- */
 export const getAllPromotions = async () => {
-    try {
-        const response = await authApi().get('/promotions');
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching promotions:", error.message || error);
-        throw error.response?.data || error;
-    }
+  try {
+    // PERBAIKAN: Hapus garis miring di akhir
+    const response = await api.get('/promotions');
+    return response.data;
+  } catch (error) {
+    console.error("Gagal mengambil data promosi:", error);
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
+  }
 };
 
-/**
- * FUNGSI UNTUK PromotionPage (dengan 'Id' kecil)
- */
-export const getPromotionById = async (id) => {
-    try {
-        const response = await authApi().get(`/promotions/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error("Error fetching promotion by ID:", error.message || error);
-        throw error.response?.data || error;
-    }
+export const getPromotionById = async (promoId) => {
+  try {
+    const response = await api.get(`/promotions/${promoId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Gagal mengambil detail promosi:", error);
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
+  }
 };
 
-export const updatePromotionStatus = async (id, status) => {
-    try {
-        const response = await authApi().patch(`/promotions/${id}/status`, { status });
-        return response.data;
-    } catch (error) {
-        console.error("Error updating promotion status:", error.message || error);
-        throw error.response?.data || error;
-    }
+export const createPromotion = async (promotionData) => {
+  try {
+    // PERBAIKAN: Hapus garis miring di akhir
+    const response = await api.post('/promotions', promotionData);
+    return response.data;
+  } catch (error) {
+    console.error("Gagal membuat promosi:", error);
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
+  }
+};
+
+export const updatePromotionStatus = async (promoId, statusPayload) => { // (Nama variabel diubah agar lebih jelas)
+  try {
+    // PERBAIKAN: Kirim 'statusPayload' langsung sebagai body
+    const response = await api.patch(`/promotions/${promoId}/status`, statusPayload); // <-- BENAR
+    return response.data;
+  } catch (error) {
+    console.error("Gagal memperbarui status promosi:", error);
+    throw error.response?.data?.error || "Gagal menghubungi layanan promosi.";
+  }
+};
+
+export const applyVoucher = async (code) => {
+  try {
+    const response = await api.post('/cashier/vouchers/apply', { code });
+    return response.data;
+  } catch (error) {
+    console.error("Gagal menerapkan voucher:", error);
+    throw error.response?.data?.error || "Voucher tidak valid atau terjadi kesalahan.";
+  }
 };

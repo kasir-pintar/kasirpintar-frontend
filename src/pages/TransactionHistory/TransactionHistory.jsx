@@ -1,19 +1,14 @@
-// LOKASI: TransactionHistoryPage.jsx (LENGKAP - Menggunakan Modal Baru)
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchTransactions } from '../../services/history';
+import { fetchTransactions } from '../../services/history'; // Pastikan path ini benar
 import { getAllOutlets } from '../../services/outlet';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import ReceiptModal from '../../components/ReceiptModal';
-// --- 🛑 PERUBAHAN IMPORT 🛑 ---
-import ExportConfirmationModal from '../../components/ExportConfirmationModal'; 
-// --- 🛑 AKHIR PERUBAHAN 🛑 ---
 import './TransactionHistory.scss';
 import { toast } from 'react-toastify';
 
-// Fungsi getTokenData (Tetap sama)
+// --- Fungsi getTokenData (Tetap sama) ---
 const getTokenData = () => {
   const token = localStorage.getItem('authToken');
   if (!token) return null;
@@ -40,30 +35,24 @@ function TransactionHistoryPage() {
   const isOwner = user?.role === 'owner';
   const [outlets, setOutlets] = useState([]);
   
-  // State Filter (Default Kosong)
+  // --- 🔹 STATE FILTER & PAGINATION 🔹 ---
   const [selectedOutlet, setSelectedOutlet] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit, setLimit] = useState(10); 
-
-  // State untuk Modal Konfirmasi
-  const [modalState, setModalState] = useState({
-    isOpen: false,
-    message: '',
-    onConfirmAction: () => {}
-  });
+  const [limit, setLimit] = useState(10); // State untuk limit
+  // --- 🔹 AKHIR STATE 🔹 ---
 
   // useEffect untuk Fetch Outlets (Tetap sama)
   useEffect(() => {
     if (!isOwner) return;
-    const fetchOutlets = async () => {
+     const fetchOutlets = async () => {
       try {
         const res = await getAllOutlets();
-        setOutlets(res.data || []);
+        setOutlets(res || []);
       } catch (err) {
         console.error('Gagal memuat outlet:', err);
         toast.error('Gagal memuat daftar outlet.');
@@ -80,7 +69,7 @@ function TransactionHistoryPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // --- loadTransactions (Tetap sama) ---
+  // --- 🔹 loadTransactions (Sudah benar) 🔹 ---
   const loadTransactions = useCallback(async () => {
     if (isOwner && !selectedOutlet) {
       setTransactions([]);
@@ -98,9 +87,8 @@ function TransactionHistoryPage() {
         outletId: isOwner ? selectedOutlet : undefined,
         search: debouncedSearch,
         page: currentPage,
+        date: selectedDate,
         limit: limit, 
-        start_date: startDate,
-        end_date: endDate,
       };
 
       const responseData = await fetchTransactions(params);
@@ -123,7 +111,7 @@ function TransactionHistoryPage() {
     } finally {
       setLoading(false);
     }
-  }, [isOwner, selectedOutlet, debouncedSearch, currentPage, startDate, endDate, limit]);
+  }, [isOwner, selectedOutlet, debouncedSearch, currentPage, selectedDate, limit]);
   
   // useEffect untuk memuat data
   useEffect(() => {
@@ -135,103 +123,37 @@ function TransactionHistoryPage() {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [selectedOutlet, debouncedSearch, startDate, endDate, limit]);
+  }, [selectedOutlet, debouncedSearch, selectedDate, limit]);
 
-  // Handler untuk lihat struk (Tetap sama)
+  // Handler untuk lihat struk
   const handleViewReceipt = (trx) => {
-    const subtotal = trx.Subtotal ?? (trx.TotalAmount + trx.Discount);
+     const subtotal = trx.Subtotal ?? (trx.TotalAmount + trx.Discount);
     const receiptData = { ...trx, Subtotal: subtotal };
     setSelectedTransaction(receiptData);
     setIsReceiptModalOpen(true);
   };
 
-  // Handler untuk Pagination (Tetap sama)
+  // Handler untuk Pagination
   const handlePageChange = (newPage) => {
-    if (newPage > 0 && newPage <= totalPages) {
+     if (newPage > 0 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
   };
-
-  // Handler Hapus Tanggal (Tetap sama)
-  const handleClearDates = () => {
-    setStartDate('');
-    setEndDate('');
-  };
-
-  // --- Handler untuk Modal ---
-  const handleCloseModal = () => {
-    setModalState({ isOpen: false, message: '', onConfirmAction: () => {} });
-  };
-
-  const handleConfirmModal = () => {
-    modalState.onConfirmAction(); // 1. Jalankan fungsi ekspor
-    handleCloseModal(); // 2. Tutup modal
-  };
-
-  // --- Fungsi ini sekarang MEMBUKA MODAL ---
-  const openExportModal = (exportType) => {
-    // 1. Buat pesan konfirmasi
-    let confirmMessage = "Apakah Anda yakin ingin mengekspor data";
-    if (startDate && !endDate) {
-      confirmMessage += ` dari ${startDate} hingga hari ini?`;
-    } else if (startDate && endDate) {
-      confirmMessage += ` dari ${startDate} hingga ${endDate}?`;
-    } else if (!startDate && endDate) {
-      confirmMessage += ` sampai ${endDate}?`;
-    } else {
-      confirmMessage += " (semua data terbaru)?";
-    }
-
-    // 2. Definisikan Aksi yang akan dijalankan jika "Ya"
-    const exportAction = () => {
-      if (isOwner && !selectedOutlet) {
-        toast.warn("Silakan pilih outlet terlebih dahulu.");
-        return;
-      }
-      const API_URL = 'http://localhost:8080';
-      const exportUrl = `${API_URL}/api/reports/transactions/export`;
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        toast.error("Sesi Anda habis. Silakan login kembali.");
-        return;
-      }
-      const params = new URLSearchParams();
-      params.append('type', exportType);
-      params.append('token', token); 
-      if (isOwner && selectedOutlet) {
-        params.append('outlet_id', selectedOutlet);
-      }
-      if (debouncedSearch) {
-        params.append('search', debouncedSearch);
-      }
-      if (startDate) {
-        params.append('start_date', startDate);
-      }
-      if (endDate) {
-        params.append('end_date', endDate);
-      }
-      window.open(`${exportUrl}?${params.toString()}`, '_blank');
-    };
-
-    // 3. Buka Modal
-    setModalState({
-      isOpen: true,
-      // title: 'Konfirmasi Ekspor', // Kita gunakan title default dari modal
-      message: confirmMessage,
-      onConfirmAction: exportAction
-    });
-  };
-
 
   return (
     <div className="history-layout">
       <header className="history-header">
         <h1>Riwayat Transaksi</h1>
+        
+        {/* --- 🛑 PERBAIKAN DI SINI 🛑 --- */}
+        {/* Tombol ini sekarang hanya muncul jika role adalah 'cashier' */}
         {user?.role === 'cashier' && (
           <Link to="/cashier" className="back-button">
             Kembali ke Kasir
           </Link>
         )}
+        {/* Role 'owner', 'admin', 'branch_manager' tidak akan melihat tombol ini */}
+        
       </header>
       <main className="history-content">
         
@@ -263,34 +185,18 @@ function TransactionHistoryPage() {
             disabled={isOwner && !selectedOutlet}
             className="search-input"
           />
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            disabled={isOwner && !selectedOutlet}
+            className="date-input"
+          /> 
+          {/* --- 🛑 KARAKTER '}' YANG ERROR SUDAH DIHAPUS DARI SINI 🛑 --- */}
           
-          <div className="date-range-filter">
-            <label htmlFor="start-date">Tgl. Mulai:</label>
-            <input
-              type="date"
-              id="start-date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              disabled={isOwner && !selectedOutlet}
-              className="date-input"
-            /> 
-          </div>
-
-          <div className="date-range-filter">
-            <label htmlFor="end-date">Tgl. Selesai:</label>
-            <input
-              type="date"
-              id="end-date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              disabled={isOwner && !selectedOutlet}
-              className="date-input"
-            /> 
-          </div>
-          
-          {(startDate || endDate) && (
+          {selectedDate && (
             <button 
-              onClick={handleClearDates}
+              onClick={() => setSelectedDate('')} 
               className="clear-date-btn"
             >
               Hapus Tanggal
@@ -311,38 +217,8 @@ function TransactionHistoryPage() {
               <option value={100}>100</option>
             </select>
           </div>
-          
-          <div className="export-buttons">
-              <button 
-                  className="export-btn excel"
-                  onClick={() => openExportModal('excel')}
-                  disabled={loading || (isOwner && !selectedOutlet)}
-              >
-                  Ekspor Excel
-              </button>
-          </div>
         </div>
 
-        <div className="date-filter-info">
-          {startDate && !endDate && (
-            <span>
-              Menampilkan data dari <strong>{startDate}</strong> hingga <strong>hari ini</strong> (diurutkan dari yang paling lama).
-            </span>
-          )}
-          {startDate && endDate && (
-            <span>
-              Menampilkan data dari <strong>{startDate}</strong> hingga <strong>{endDate}</strong> (diurutkan dari yang paling lama).
-            </span>
-          )}
-          {!startDate && endDate && (
-            <span>
-              Menampilkan data dari awal hingga <strong>{endDate}</strong> (diurutkan dari yang paling lama).
-            </span>
-          )}
-        </div>
-
-
-        {/* ... (Sisa JSX: loading, error, list, pagination, modal - TIDAK BERUBAH) ... */}
         {loading && <p className="loading-text">Memuat data...</p>}
         {error && <p className="error-message">{error}</p>}
         {isOwner && !selectedOutlet && !loading && !error && (
@@ -392,11 +268,12 @@ function TransactionHistoryPage() {
                 ))
               ) : (
                 <p className="info-text">
-                  {debouncedSearch || startDate || endDate ? "Tidak ada transaksi yang cocok dengan filter." : "Belum ada riwayat transaksi."}
+                  {debouncedSearch || selectedDate ? "Tidak ada transaksi yang cocok dengan filter." : "Belum ada riwayat transaksi."}
                 </p>
               )}
             </div>
 
+            {/* --- 🔹 KONTROL PAGINATION (HANYA TOMBOL) 🔹 --- */}
             {totalPages > 1 && (
               <div className="pagination-controls">
                 <div className="page-nav">
@@ -418,26 +295,16 @@ function TransactionHistoryPage() {
                 </div>
               </div>
             )}
+            {/* --- 🔹 AKHIR KONTROL 🔹 --- */}
           </>
         )}
       </main>
 
       <ReceiptModal
-        isOpen={isReceiptModalOpen}
+          isOpen={isReceiptModalOpen}
         onClose={() => setIsReceiptModalOpen(false)}
         transactionData={selectedTransaction}
       />
-
-      {/* --- 🛑 PERUBAHAN KOMPONEN 🛑 --- */}
-      <ExportConfirmationModal
-        isOpen={modalState.isOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleConfirmModal}
-        // title={modalState.title} // Kita gunakan title default
-        message={modalState.message}
-      />
-      {/* --- 🛑 AKHIR PERUBAHAN 🛑 --- */}
-
     </div>
   );
 }

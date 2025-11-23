@@ -9,6 +9,8 @@ import MainLayout from '../layouts/MainLayout';
 // Import Pages
 import LandingPage from '../pages/Landing/Landing';
 import LoginPage from '../pages/Login/Login';
+import ForgotPassword from '../pages/Auth/ForgotPassword';
+import ResetPassword from '../pages/Auth/ResetPassword';
 import CashierPage from '../pages/Cashier/Cashier';
 import DashboardIndexPage from '../pages/Dashboard/index';
 import ProfilePage from '../pages/ProfilePage/ProfilePage';
@@ -44,6 +46,8 @@ function App() {
         {/* --- Rute Publik --- */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         {/* --- Rute Khusus Kasir (Tanpa Sidebar/Layout Utama) --- */}
         <Route path="/cashier" element={

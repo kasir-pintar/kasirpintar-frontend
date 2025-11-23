@@ -64,6 +64,9 @@ function LoginPage() {
             <label>Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
+          <div className="forgot-link-row">
+            <Link to="/forgot-password" className="forgot-link">Lupa Password?</Link>
+          </div>
           {error && <p className="error-message">{error}</p>}
           <button type="submit" className="login-button" disabled={loading}>
             {loading ? 'Memproses...' : 'Login'}

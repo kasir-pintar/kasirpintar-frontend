@@ -5,7 +5,9 @@ import api from './api';
 export const getAllOutlets = async (params) => {
   try {
     const response = await api.get('/outlets', { params }); // Kirim params ke API
-    return response.data;
+    // Kembalikan array outlet langsung (`response.data.data`) agar pemanggil
+    // cukup menerima daftar outlet tanpa perlu mengakses `.data.data`.
+    return response.data?.data || [];
   } catch (error) {
     console.error("Gagal mengambil data outlet:", error);
     throw error.response?.data?.error || "Gagal menghubungi layanan outlet.";
