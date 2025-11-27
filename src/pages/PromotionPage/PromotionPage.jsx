@@ -1,43 +1,49 @@
 import React, { useState, useEffect } from 'react';
-// --- Pastikan path service benar ---
+// Pastikan path service ini sudah benar sesuai struktur project Anda
 import { getAllPromotions, updatePromotionStatus, getPromotionById } from '../../services/promotion';
-// --- Pastikan path komponen modal benar ---
 import CreatePromotionModal from '../../components/CreatePromotionModal';
 import ViewVouchersModal from '../../components/ViewVouchersModal';
 import './PromotionPage.scss';
-import { FaPlus, FaTicketAlt, FaPercent, FaMoneyBillWave, FaToggleOn, FaToggleOff, FaEye } from 'react-icons/fa';
+// Pastikan react-icons sudah terinstall: npm install react-icons
+import { FaPlus, FaTicketAlt, FaPercent, FaMoneyBillWave, FaToggleOn, FaToggleOff, FaEye, FaStore } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+// Pastikan jwt-decode sudah terinstall: npm install jwt-decode
 import { jwtDecode } from 'jwt-decode';
 
-// Komponen Kartu Promosi (Tidak ada perubahan di sini, sudah benar)
-const PromotionCard = ({ promo, onStatusChange, onViewVouchers, canEdit }) => {
+// Komponen Kartu Promosi
+const PromotionCard = ({ promo, onStatusChange, onViewVouchers, canEdit, showOutlet }) => {
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
     
-    // Gunakan promo.Type dan promo.Value
     const getPromoValue = () => {
-        // Handle jika Value null atau undefined
         const value = promo.Value ?? 0;
         return promo.Type === 'PERCENTAGE' ? `${value}%` : `Rp ${parseInt(value).toLocaleString('id-ID')}`;
     }
 
     return (
-        // Gunakan promo.Status
-        <div className={`promo-card status-${promo.Status?.toLowerCase() || 'inactive'}`}> {/* Fallback status */}
+        <div className={`promo-card status-${promo.Status?.toLowerCase() || 'inactive'}`}>
             <div className="promo-card-header">
-                <span className="promo-icon">{promo.Type === 'PERCENTAGE' ? <FaPercent /> : <FaMoneyBillWave />}</span>
-                <span className={`promo-status`}>{promo.Status || 'Inactive'}</span> {/* Fallback status */}
+                <div className="icon-wrapper">
+                    <span className="promo-icon">{promo.Type === 'PERCENTAGE' ? <FaPercent /> : <FaMoneyBillWave />}</span>
+                    {/* TAMPILKAN OUTLET BADGE JIKA DIMINTA (UNTUK OWNER) */}
+                    {showOutlet && (
+                        <span className="outlet-badge">
+                            <FaStore style={{marginRight: '4px'}}/> {promo.Outlet?.Name || 'N/A'}
+                        </span>
+                    )}
+                </div>
+                <span className={`promo-status`}>{promo.Status || 'Inactive'}</span>
             </div>
-            {/* Gunakan promo.Name, promo.Value, promo.Description */}
-            <h4 className="promo-name">{promo.Name || 'Nama Promosi'}</h4> {/* Fallback nama */}
+            
+            <h4 className="promo-name">{promo.Name || 'Nama Promosi'}</h4>
             <p className="promo-value">{getPromoValue()}</p>
-            <p className="promo-description">{promo.Description || '-'}</p> {/* Fallback deskripsi */}
+            <p className="promo-description">{promo.Description || '-'}</p>
+            
             <div className="promo-date-footer">
                 <span>Berlaku:</span>
-                {/* start_date dan end_date tetap huruf kecil (sesuai JSON dari Go tanpa tag) */}
                 <p>{formatDate(promo.start_date)} - {formatDate(promo.end_date)}</p>
             </div>
+            
             <div className="promo-actions-footer">
-                {/* Gunakan promo.ID */}
                 <button className="btn-view" onClick={() => onViewVouchers(promo.ID)}>
                     <FaEye /> Lihat Voucher
                 </button>
@@ -55,42 +61,45 @@ const PromotionCard = ({ promo, onStatusChange, onViewVouchers, canEdit }) => {
     );
 };
 
-
-// Komponen Halaman Utama
 function PromotionPage() {
-    const [promotions, setPromotions] = useState([]); // Inisialisasi sudah benar []
+    const [promotions, setPromotions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isCreateModalOpen, setCreateModalOpen] = useState(false);
     const [isViewModalOpen, setViewModalOpen] = useState(false);
     const [selectedPromotion, setSelectedPromotion] = useState(null);
-    // Tentukan role user dari token
-    const token = localStorage.getItem('authToken');
-    let userRole = '';
-    try {
-        if (token) userRole = jwtDecode(token).role || '';
-    } catch (err) {
-        console.error('Gagal decode token:', err);
-    }
-    const canEdit = (userRole && (userRole === 'owner' || userRole === 'admin'));
+    
+    // Cek Role
+    const [userRole, setUserRole] = useState('');
 
-    // --- FUNGSI FETCHPROMOTIONS DIPERBAIKI ---
+    useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserRole(decoded.role || '');
+            } catch (err) {
+                console.error('Gagal decode token:', err);
+            }
+        }
+    }, []);
+    
+    const canEdit = (userRole === 'owner' || userRole === 'admin');
+    // Hanya tampilkan nama outlet jika yang melihat adalah Owner/Admin
+    const showOutletInfo = canEdit; 
+
     const fetchPromotions = async () => {
         try {
             setLoading(true);
             setError('');
-            // Panggil service, response = { data: [...] }
             const response = await getAllPromotions();
-
-            // Service mungkin mengembalikan array langsung atau objek { data: [...] }
             const promos = response?.data || response || [];
             setPromotions(Array.isArray(promos) ? promos : (promos.data || []));
-
         } catch (err) {
             const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
             setError(errorMessage);
             toast.error(`Gagal memuat data promosi: ${errorMessage}`);
-            setPromotions([]); // Pastikan tetap array jika error
+            setPromotions([]);
         } finally {
             setLoading(false);
         }
@@ -104,14 +113,13 @@ function PromotionPage() {
     const handleCloseCreateModal = () => setCreateModalOpen(false);
 
     const handlePromotionCreated = () => {
-        fetchPromotions(); // Muat ulang data
+        fetchPromotions();
         toast.success("Promosi baru berhasil dibuat!");
     };
 
     const handleStatusChange = async (promoId, newStatus) => {
         try {
-            // Service updatePromotionStatus sudah harusnya mengembalikan { data: {...updatedPromo...} }
-            const response = await updatePromotionStatus(promoId, { status: newStatus }); // Kirim status dalam body
+            const response = await updatePromotionStatus(promoId, { status: newStatus });
             const updatedPromotion = response?.data || response;
 
             setPromotions(currentPromos =>
@@ -126,9 +134,8 @@ function PromotionPage() {
 
     const handleViewVouchers = async (promoId) => {
         try {
-            // Service getPromotionById sudah harusnya mengembalikan { data: {...promoWithVouchers...} }
             const response = await getPromotionById(promoId);
-            setSelectedPromotion(response?.data || response); // Akses data dari response
+            setSelectedPromotion(response?.data || response);
             setViewModalOpen(true);
         } catch (err) {
              const errorMessage = err.response?.data?.error || err.message || "Terjadi kesalahan";
@@ -141,8 +148,6 @@ function PromotionPage() {
         setSelectedPromotion(null);
     };
 
-
-    // --- RENDER JSX ---
     return (
         <div className="promotion-container">
             <div className="promotion-header">
@@ -153,9 +158,8 @@ function PromotionPage() {
             </div>
             <div className="promotion-list">
                 {loading && <p className='loading-text'>Memuat data promosi...</p>}
-                {/* Tampilkan error jika ada */}
                 {!loading && error && <p className="error-message">{error}</p>}
-                {/* Kondisi data kosong */}
+                
                 {!loading && !error && (!Array.isArray(promotions) || promotions.length === 0) && (
                     <div className="no-data">
                         <FaTicketAlt />
@@ -163,10 +167,9 @@ function PromotionPage() {
                         <span>Klik "Buat Promosi Baru" untuk memulai.</span>
                     </div>
                 )}
-                {/* Tampilkan grid jika data ada */}
+                
                 {!loading && !error && Array.isArray(promotions) && promotions.length > 0 && (
                     <div className="promo-grid">
-                        {/* Sekarang promotions.map() akan bekerja */}
                         {promotions.map(promo => (
                             <PromotionCard
                                 key={promo.ID}
@@ -174,13 +177,14 @@ function PromotionPage() {
                                 onStatusChange={handleStatusChange}
                                 onViewVouchers={handleViewVouchers}
                                 canEdit={canEdit}
+                                showOutlet={showOutletInfo} // Kirim props baru
                             />
                         ))}
                     </div>
                 )}
             </div>
 
-            {/* Modal Create */}
+            {/* Render Modal hanya jika user memiliki izin (Owner/Admin) */}
             {canEdit && (
                 <CreatePromotionModal
                     isOpen={isCreateModalOpen}
@@ -189,11 +193,10 @@ function PromotionPage() {
                 />
             )}
 
-            {/* Modal View Vouchers */}
             <ViewVouchersModal
                 isOpen={isViewModalOpen}
                 onClose={handleCloseViewModal}
-                promotion={selectedPromotion} // Kirim data promosi lengkap (sudah termasuk voucher)
+                promotion={selectedPromotion} 
             />
         </div>
     );

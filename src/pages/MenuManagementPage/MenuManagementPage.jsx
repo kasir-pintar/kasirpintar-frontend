@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { getAllMenus, createMenu, updateMenu, deleteMenu } from '../../services/menu';
 import { toast } from 'react-toastify';
 import { NumericFormat } from 'react-number-format';
+import { jwtDecode } from 'jwt-decode'; // Pastikan library ini sudah diinstall
 import MenuFormModal from '../../components/MenuFormModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import './MenuManagementPage.scss';
@@ -17,22 +18,35 @@ function MenuManagementPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [error, setError] = useState('');
     
-    // --- PERBAIKAN: Deklarasikan state error ---
-    const [error, setError] = useState(''); 
-    // --- AKHIR PERBAIKAN ---
+    // State untuk menyimpan role user saat ini
+    const [userRole, setUserRole] = useState('');
+
+    // 1. Ambil Role User dari Token saat halaman dimuat
+    useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserRole(decoded.role || '');
+            } catch (e) {
+                console.error("Token invalid");
+            }
+        }
+    }, []);
 
     const fetchMenus = async () => {
         try {
             setLoading(true);
-            setError(''); // Reset error sebelum fetch
+            setError('');
             const response = await getAllMenus();
+            // Backend mengembalikan { data: [...] }
             setMenus(response.data || []);
         } catch (error) {
             const errorMessage = error.response?.data?.error || error.message || "Terjadi kesalahan";
-            setError(`Gagal memuat data menu: ${errorMessage}`); // Gunakan setError
+            setError(`Gagal memuat data menu: ${errorMessage}`);
             toast.error(`Gagal memuat data menu: ${errorMessage}`);
-            console.error("Fetch menus error:", error);
             setMenus([]);
         } finally {
             setLoading(false);
@@ -99,7 +113,9 @@ function MenuManagementPage() {
         if (!Array.isArray(menus)) return [];
         return menus.filter(menu =>
             (menu.Name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (menu.Category?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+            (menu.Category?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            // Opsional: Cari berdasarkan outlet juga jika kolomnya tampil
+            (menu.Outlet?.Name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
         );
     }, [menus, searchTerm]);
 
@@ -115,13 +131,20 @@ function MenuManagementPage() {
         setCurrentPage(1);
     };
 
+    // Helper boolean untuk cek apakah user adalah Owner/Admin
+    const isOwnerOrAdmin = userRole === 'owner' || userRole === 'admin';
+
     return (
         <div className="menu-management-container">
             <div className="page-header">
                 <h1>Manajemen Menu</h1>
-                <button className="add-btn" onClick={() => handleOpenFormModal(null)}>
-                    <FaPlus /> Tambah Menu Baru
-                </button>
+                
+                {/* 2. Tombol Tambah Menu: HANYA untuk Owner/Admin */}
+                {isOwnerOrAdmin && (
+                    <button className="add-btn" onClick={() => handleOpenFormModal(null)}>
+                        <FaPlus /> Tambah Menu Baru
+                    </button>
+                )}
             </div>
 
             <div className="page-content">
@@ -130,7 +153,7 @@ function MenuManagementPage() {
                         <FaSearch className="search-icon" />
                         <input
                             type="text"
-                            placeholder="Cari berdasarkan Nama/Kategori..."
+                            placeholder="Cari menu..."
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -150,9 +173,7 @@ function MenuManagementPage() {
                 </div>
 
                 {loading ? ( <p className='loading-text'>Memuat data menu...</p> )
-                : error ? ( // Tampilkan error jika ada
-                    <p className="error-message">{error}</p>
-                )
+                : error ? ( <p className="error-message">{error}</p> )
                 : !Array.isArray(menus) || menus.length === 0 ? (
                     <div className="no-data"><FaUtensils /><p>Belum ada menu di outlet ini.</p></div>
                 ) : (
@@ -164,6 +185,12 @@ function MenuManagementPage() {
                                         <th className="column-no">No</th>
                                         <th>Nama Menu</th>
                                         <th>Kategori</th>
+                                        
+                                        {/* 3. Header Kolom Outlet: HANYA untuk Owner/Admin */}
+                                        {isOwnerOrAdmin && (
+                                            <th>Outlet</th>
+                                        )}
+
                                         <th>Harga</th>
                                         <th>Stok</th>
                                         <th>Aksi</th>
@@ -176,17 +203,38 @@ function MenuManagementPage() {
                                                 <td className="column-no">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                                 <td>{menu.Name}</td>
                                                 <td>{menu.Category || '-'}</td>
+                                                
+                                                {/* 4. Data Kolom Outlet: HANYA untuk Owner/Admin */}
+                                                {isOwnerOrAdmin && (
+                                                    <td>
+                                                        <span className="outlet-badge">
+                                                            {menu.Outlet?.Name || 'N/A'}
+                                                        </span>
+                                                    </td>
+                                                )}
+
                                                 <td><NumericFormat value={menu.Price} displayType="text" thousandSeparator="." decimalSeparator="," prefix="Rp " /></td>
                                                 <td>{menu.Stock}</td>
                                                 <td className="action-cell">
-                                                    <button className="action-btn edit-btn" onClick={() => handleOpenFormModal(menu)}><FaEdit /> Edit</button>
-                                                    <button className="action-btn delete-btn" onClick={() => handleDeleteRequest(menu)}><FaTrash /> Hapus</button>
+                                                    {/* Semua role (Manager & Owner) boleh klik Edit */}
+                                                    {/* Nanti di dalam Modal, field yang bisa diedit akan dibatasi */}
+                                                    <button className="action-btn edit-btn" onClick={() => handleOpenFormModal(menu)}>
+                                                        <FaEdit /> Edit
+                                                    </button>
+                                                    
+                                                    {/* 5. Tombol Hapus: HANYA untuk Owner/Admin */}
+                                                    {isOwnerOrAdmin && (
+                                                        <button className="action-btn delete-btn" onClick={() => handleDeleteRequest(menu)}>
+                                                            <FaTrash /> Hapus
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>
+                                            {/* Sesuaikan colspan agar tampilan tetap rapi */}
+                                            <td colSpan={isOwnerOrAdmin ? 7 : 6} style={{ textAlign: 'center', padding: '20px' }}>
                                                 Menu tidak ditemukan.
                                             </td>
                                         </tr>
@@ -212,11 +260,13 @@ function MenuManagementPage() {
                 )}
             </div>
 
+            {/* 6. Kirim prop userRole ke Modal */}
             <MenuFormModal
                 isOpen={isFormModalOpen}
                 onClose={handleCloseFormModal}
                 onSubmit={handleSubmitMenu}
                 initialData={editingMenu}
+                userRole={userRole} 
             />
 
             <ConfirmationModal

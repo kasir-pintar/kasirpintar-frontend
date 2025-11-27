@@ -8,5 +8,13 @@ export const fetchMenus = async () => {
 
 export const createTransaction = async (transactionData) => {
     const response = await api.post('/cashier/transactions', transactionData);
-    return response.data; // Pastikan ada return di sini
+    return response.data;
+};
+
+// --- TAMBAHKAN FUNGSI INI ---
+export const checkTransactionStatus = async (invoiceNumber) => {
+    // Backend menggunakan wildcard route (*invoice), jadi kita kirim invoice apa adanya
+    // Contoh URL: /cashier/transactions/status/INV/176...
+    const response = await api.get(`/cashier/transactions/status/${invoiceNumber}`);
+    return response.data;
 };

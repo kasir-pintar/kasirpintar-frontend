@@ -1,6 +1,6 @@
 // LOKASI: src/components/CreatePromotionModal.scss
 
-.promotion-modal-overlay {
+.promo-form-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -13,7 +13,7 @@
   z-index: 1000;
 }
 
-.promotion-modal {
+.promo-form-modal {
   width: 90%;
   max-width: 600px;
   background: white;
@@ -21,25 +21,36 @@
   border-radius: 8px;
   outline: none;
   font-family: sans-serif;
+  
+  /* Agar modal bisa di-scroll jika kontennya panjang */
   max-height: 90vh;
-  overflow-y: auto; // Agar bisa di-scroll jika kontennya panjang
+  overflow-y: auto; 
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 
   h2 {
     margin-top: 0;
     margin-bottom: 25px;
     text-align: center;
+    color: #333;
   }
 
   .promo-form {
     .form-row {
       display: flex;
       gap: 20px;
+      
       @media (max-width: 600px) {
         flex-direction: column;
         gap: 0;
       }
+      
       .form-group {
         flex: 1;
+        
+        /* Fix khusus untuk react-datepicker agar lebar 100% */
+        .react-datepicker-wrapper {
+            width: 100%;
+        }
       }
     }
     
@@ -53,12 +64,17 @@
         color: #343a40;
       }
 
-      input, select, textarea {
+      input, select, textarea, .date-picker-input {
         width: 100%;
         padding: 10px;
         font-size: 1em;
         border: 1px solid #ccc;
         border-radius: 5px;
+        
+        &:focus {
+            border-color: #007bff;
+            outline: none;
+        }
       }
 
       textarea {
@@ -66,6 +82,83 @@
         resize: vertical;
       }
     }
+
+    /* --- STYLE BARU UNTUK MULTI-OUTLET CHECKBOX --- */
+    .outlet-selection-group {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    
+        label {
+            margin-bottom: 10px;
+        }
+    
+        .outlet-list-container {
+            max-height: 200px; /* Batasi tinggi agar scroll muncul */
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+    
+            .outlet-item {
+                display: flex;
+                align-items: center;
+                padding: 8px 12px;
+                border-bottom: 1px solid #f1f1f1;
+                transition: background 0.2s;
+    
+                &:last-child {
+                    border-bottom: none;
+                }
+    
+                &:hover {
+                    background-color: #f1f8ff;
+                }
+    
+                /* Style Khusus 'Pilih Semua' agar menempel di atas */
+                &.select-all {
+                    background-color: #e9ecef;
+                    font-weight: bold;
+                    position: sticky;
+                    top: 0;
+                    z-index: 1;
+                    border-bottom: 2px solid #dee2e6;
+                }
+    
+                input[type="checkbox"] {
+                    width: 18px; 
+                    height: 18px;
+                    margin-right: 12px;
+                    cursor: pointer;
+                }
+    
+                label {
+                    margin-bottom: 0;
+                    cursor: pointer;
+                    flex: 1;
+                    font-weight: normal;
+                }
+            }
+            
+            .no-data-text {
+                text-align: center;
+                padding: 15px;
+                color: #888;
+                font-style: italic;
+            }
+        }
+    
+        .helper-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-align: right;
+            display: block;
+            margin-top: 5px;
+        }
+    }
+    /* ----------------------------------------------- */
   }
 
   .actions-row {
@@ -84,13 +177,19 @@
       font-weight: bold;
       font-size: 1rem;
       transition: background-color 0.2s;
+      
+      &:hover {
+          opacity: 0.9;
+      }
     }
+    
     .button-primary {
       background-color: #007bff;
       color: white;
       &:hover { background-color: #0056b3; }
       &:disabled { background-color: #ccc; cursor: not-allowed; }
     }
+    
     .button-secondary {
       background-color: #6c757d;
       color: white;

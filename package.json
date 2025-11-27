@@ -17,7 +17,10 @@
     "chart.js": "^4.5.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.22",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "jwt-decode": "^4.0.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.1",
     "react-chartjs-2": "^5.3.0",
     "react-datepicker": "^8.7.0",
@@ -27,9 +30,7 @@
     "react-number-format": "^5.4.4",
     "react-router-dom": "^7.9.3",
     "react-toastify": "^11.0.5",
-    "sass": "^1.93.2",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.1"
+    "sass": "^1.94.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

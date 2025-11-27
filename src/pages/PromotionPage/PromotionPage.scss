@@ -79,32 +79,53 @@
     border-left-color: #dc3545
 }
 
+/* --- REVISI HEADER KARTU --- */
 .promo-card .promo-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 15px
-}
+    align-items: center; // Pastikan sejajar vertikal
+    padding: 15px;
 
-.promo-card .promo-card-header .promo-icon {
-    background-color: #007bff;
-    color: #fff;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2em
-}
+    .icon-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
 
-.promo-card .promo-card-header .promo-status {
-    font-size: .8em;
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 12px;
-    color: #fff;
-    background-color: #6c757d
+    .promo-icon {
+        background-color: #007bff;
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2em
+    }
+
+    /* Style Badge Outlet Baru */
+    .outlet-badge {
+        background-color: #e9ecef;
+        color: #495057;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        border: 1px solid #dee2e6;
+    }
+
+    .promo-status {
+        font-size: .8em;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: 12px;
+        color: #fff;
+        background-color: #6c757d
+    }
 }
 
 .promo-card .promo-card-header .status-active .promo-status {
@@ -156,11 +177,12 @@
 .promo-card .promo-actions-footer {
     padding: 10px 15px;
     border-top: 1px solid #eee;
-    display: flex
+    display: flex;
+    gap: 10px;
 }
 
 .promo-card .promo-actions-footer button {
-    width: 100%;
+    flex: 1; /* Agar tombol membagi rata lebar */
     border: none;
     padding: 8px;
     font-size: .9em;
@@ -172,6 +194,12 @@
     justify-content: center;
     gap: 8px;
     transition: background-color .2s
+}
+
+.promo-card .promo-actions-footer .btn-view {
+    background-color: #f0f0f0;
+    color: #333;
+    &:hover { background-color: #e2e2e2; }
 }
 
 .promo-card .promo-actions-footer .btn-activate {
