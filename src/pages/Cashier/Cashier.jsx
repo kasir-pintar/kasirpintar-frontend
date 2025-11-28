@@ -1,33 +1,42 @@
-// LOKASI: src/pages/Cashier/Cashier.jsx
+// LOKASI: src/pages/Cashier/Cashier.jsx (GANTI TOTAL)
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { fetchMenus } from '../../services/cashier';
-import { applyVoucher } from '../../services/promotion';
+// --- (Import path Anda sudah benar) ---
+import { fetchMenus, createTransaction } from '../../services/cashier';
+import { applyVoucher } from '../../services/promotion'; 
+// ---
 import { toast } from 'react-toastify';
-import PaymentModal from '../../components/PaymentModal';
-import ReceiptModal from '../../components/ReceiptModal';
-import DiscountModal from '../../components/DiscountModal';
-import CustomerModal from '../../components/CustomerModal';
+import PaymentModal from '../../components/PaymentModal'; 
+import ReceiptModal from '../../components/ReceiptModal'; 
+import DiscountModal from '../../components/DiscountModal'; 
+import CustomerModal from '../../components/CustomerModal'; 
 import './Cashier.scss';
 import { FaTags } from 'react-icons/fa';
 
+// (Helper formatRupiah)
+const formatRupiah = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(number);
+};
+
 function CashierPage() {
+    // (Semua state Anda ... SAMA)
     const navigate = useNavigate();
-    const [menus, setMenus] = useState([]);
+    const [menus, setMenus] = useState([]); 
     const [cart, setCart] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    
-    // Modal States
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
     const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
     const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
-    
-    // Transaction Data States
     const [lastTransaction, setLastTransaction] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Semua');
@@ -35,31 +44,28 @@ function CashierPage() {
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [cashierName, setCashierName] = useState('');
     const [currentTime, setCurrentTime] = useState(new Date());
-    
-    // Voucher States
     const [voucherCode, setVoucherCode] = useState("");
     const [appliedVoucher, setAppliedVoucher] = useState(null);
     const [voucherError, setVoucherError] = useState("");
     const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
 
-    // Load Menus
+    // (loadMenus ... SAMA)
     const loadMenus = async () => {
         try {
             setError('');
             setLoading(true);
             const response = await fetchMenus();
-            // Pastikan data yang diambil adalah array
             setMenus(response.data || []);
         } catch (err) {
             setError('Gagal memuat data menu.');
-            console.error("Fetch menus error:", err);
-            setMenus([]);
+            console.error("Fetch menus error:", err.message || err); 
+            setMenus([]); 
         } finally {
             setLoading(false);
         }
     };
 
-    // Init Effect
+    // (useEffect ... SAMA)
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (token) {
@@ -72,26 +78,28 @@ function CashierPage() {
             }
         }
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        loadMenus();
+        loadMenus(); 
         return () => clearInterval(timer);
     }, []);
 
-    // Memoized Data
+    // (uniqueCategories, filteredMenus, handleLogout ... SAMA)
     const uniqueCategories = useMemo(() => {
-        if (!Array.isArray(menus)) return ['Semua'];
+        if (!Array.isArray(menus)) return ['Semua']; 
         const cats = menus.map(menu => menu.Category).filter(Boolean);
         return ['Semua', ...new Set(cats)];
     }, [menus]);
 
     const filteredMenus = useMemo(() => {
-        if (!Array.isArray(menus)) return [];
+        if (!Array.isArray(menus)) return []; 
         return menus.filter(menu =>
             (selectedCategory === 'Semua' || menu.Category === selectedCategory) &&
             menu.Name.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [menus, searchTerm, selectedCategory]);
 
-    // Cart Logic
+    const handleLogout = () => { localStorage.removeItem('authToken'); navigate('/login'); };
+
+    // (Fungsi Cart ... SAMA)
     const resetAllDiscounts = () => {
         setManualDiscount(0);
         setAppliedVoucher(null);
@@ -112,7 +120,7 @@ function CashierPage() {
                 }
             } else {
                 if (menu.Stock > 0) {
-                     return [...currentCart, { menu_id: menu.ID, name: menu.Name, price: menu.Price, quantity: 1 }];
+                   return [...currentCart, { menu_id: menu.ID, name: menu.Name, price: menu.Price, quantity: 1 }];
                 } else {
                     toast.warn(`Stok ${menu.Name} habis.`);
                     return currentCart;
@@ -125,12 +133,11 @@ function CashierPage() {
         resetAllDiscounts();
         setCart(currentCart => {
             const originalMenu = menus.find(m => m.ID === menu_id);
-            if (!originalMenu) return currentCart;
-
+            if (!originalMenu) return currentCart; 
             return currentCart.map(item => {
                 if (item.menu_id === menu_id) {
                     const newQuantity = item.quantity + amount;
-                    if (newQuantity <= 0) return null;
+                    if (newQuantity <= 0) { return null; }
                     if (newQuantity > originalMenu.Stock) {
                         toast.warn(`Stok ${item.name} tidak mencukupi.`);
                         return item;
@@ -138,7 +145,7 @@ function CashierPage() {
                     return { ...item, quantity: newQuantity };
                 }
                 return item;
-            }).filter(Boolean);
+            }).filter(Boolean); 
         });
     };
 
@@ -153,14 +160,13 @@ function CashierPage() {
         resetAllDiscounts();
     };
 
-    // Calculations
+    // (Kalkulasi Total ... SAMA)
     const subtotal = useMemo(() => cart.reduce((total, item) => total + item.price * item.quantity, 0), [cart]);
 
     const voucherDiscount = useMemo(() => {
         if (!appliedVoucher) return 0;
         const { promotion } = appliedVoucher;
-        if (!promotion) return 0;
-
+        if (!promotion) return 0; 
         let discount = 0;
         if (promotion.Type === 'PERCENTAGE') {
             discount = (subtotal * promotion.Value) / 100;
@@ -173,12 +179,7 @@ function CashierPage() {
     const totalDiscount = voucherDiscount + manualDiscount;
     const grandTotal = Math.max(0, subtotal - totalDiscount);
 
-    // Handlers
-    const handleLogout = () => { 
-        localStorage.removeItem('authToken'); 
-        navigate('/login'); 
-    };
-
+    // (Fungsi Diskon & Voucher ... SAMA)
     const handleApplyManualDiscount = (discountValue) => {
         const validDiscount = Math.min(discountValue, subtotal);
         setManualDiscount(validDiscount);
@@ -187,6 +188,8 @@ function CashierPage() {
         setVoucherError("");
         if (validDiscount > 0) {
             toast.info('Diskon manual diterapkan, voucher dihapus.');
+        } else if (discountValue > subtotal) {
+            toast.warn('Diskon manual tidak boleh melebihi subtotal.');
         }
     };
 
@@ -219,40 +222,70 @@ function CashierPage() {
         toast.info("Voucher dihapus.");
     };
 
-    // --- FIX: Handler Baru untuk Sukses Bayar ---
-    // Logika API createTransaction sudah dipindah ke dalam PaymentModal
-    // Fungsi ini hanya menerima hasil balikan dari Modal
-    const handleTransactionSuccess = (transactionResult) => {
-        setIsPaymentModalOpen(false);
+    
+    // --- 🛑 PERBAIKAN UTAMA DI SINI 🛑 ---
+    // Fungsi ini sekarang "pintar" dan bisa menangani Tunai & QRIS
+    const handlePaymentComplete = (transactionData) => {
+        // transactionData:
+        // - Dari Tunai: Objek transaksi LENGKAP dari backend.
+        // - Dari QRIS: Objek MINIMAL: { InvoiceNumber, PaymentMethod, TotalAmount }
         
-        // Gabungkan data API dengan data lokal (Subtotal, User, Customer) agar struk lengkap
-        const receiptData = { 
-            ...transactionResult, 
-            Subtotal: subtotal,
-            User: { Name: cashierName }, 
-            Customer: selectedCustomer 
-        };
-        
-        setLastTransaction(receiptData);
-        setIsReceiptModalOpen(true);
-    };
+        let finalTransactionData;
 
-    const openPaymentModal = () => { 
-        if (cart.length > 0) { 
-            setIsPaymentModalOpen(true); 
-        } else { 
-            toast.warn('Keranjang masih kosong!'); 
-        } 
+        if (transactionData.PaymentMethod === 'QRIS') {
+            // --- Alur QRIS ---
+            // Kita harus BUAT ULANG objek struk secara manual
+            // agar strukturnya sama seperti yang dari backend
+            finalTransactionData = {
+                ...transactionData, // (InvoiceNumber, PaymentMethod, TotalAmount)
+                Subtotal: subtotal,
+                Discount: totalDiscount,
+                User: { Name: cashierName },
+                Customer: selectedCustomer, // (bisa null, tidak apa-apa)
+                Details: cart.map(item => ({
+                    // Strukturnya HARUS cocok dengan apa yang diharapkan ReceiptModal
+                    // (yang meniru struktur backend)
+                    Quantity: item.quantity,
+                    Price: item.price,
+                    Menu: {
+                        Name: item.name
+                    }
+                })),
+                // Data Tunai di-nol-kan
+                CashTendered: 0,
+                Change: 0,
+                // Tambahkan Waktu (WIB)
+                CreatedAt: new Date().toISOString() 
+            };
+        } else {
+            // --- Alur Tunai ---
+            // transactionData sudah lengkap dari backend.
+            // Kita hanya perlu memastikan data User/Customer (jika null)
+            finalTransactionData = {
+                ...transactionData,
+                User: transactionData.User || { Name: cashierName },
+                Customer: transactionData.Customer || selectedCustomer
+            };
+        }
+        
+        // Sekarang, 'finalTransactionData' memiliki struktur yang konsisten
+        // baik untuk Tunai maupun QRIS
+        setLastTransaction(finalTransactionData);
+        
+        setIsPaymentModalOpen(false); // Tutup modal bayar
+        setIsReceiptModalOpen(true); // Buka modal struk
+        
+        clearCart(); // Kosongkan keranjang
+        loadMenus(); // Muat ulang stok menu
     };
     
-    const handleNewTransaction = () => { 
-        setIsReceiptModalOpen(false); 
-        setLastTransaction(null); 
-        clearCart(); 
-        loadMenus(); 
-    };
+    // (Fungsi Buka/Tutup Modal - SAMA)
+    const openPaymentModal = () => { if (cart.length > 0) { setIsPaymentModalOpen(true); } else { toast.warn('Keranjang masih kosong!'); } };
+    const handleClosePaymentModal = () => setIsPaymentModalOpen(false); 
+    const handleNewTransaction = () => { setIsReceiptModalOpen(false); setLastTransaction(null); clearCart(); loadMenus(); };
 
-    // --- JSX ---
+
+    // --- RENDER JSX (INI ADALAH JSX ASLI ANDA, SUDAH LENGKAP) ---
     return (
         <div className="cashier-layout">
             <header className="cashier-header">
@@ -278,7 +311,7 @@ function CashierPage() {
                         </div>
                         <div className="category-tabs">
                             {uniqueCategories.map(category => (
-                                <button key={category} className={`category-tab ${selectedCategory === category ? 'active' : ''}`} onClick={() => setSelectedCategory(category)}>{category || 'Lainnya'}</button>
+                                <button key={category} className={`category-tab ${selectedCategory === category ? 'active' : ''}`} onClick={() => setSelectedCategory(category)}>{category || 'Lainnya'}</button> 
                             ))}
                         </div>
                     </div>
@@ -360,23 +393,25 @@ function CashierPage() {
                 </aside>
             </main>
 
-            {/* --- FIX: Props PaymentModal Lengkap --- */}
-            <PaymentModal 
-                isOpen={isPaymentModalOpen} 
-                onClose={() => setIsPaymentModalOpen(false)} 
-                
-                // Data wajib dikirim agar tidak Error NaN / Undefined
-                cart={cart}
-                subtotal={subtotal}
-                discount={totalDiscount}
-                total={grandTotal}
-                customer={selectedCustomer}
-                voucher={appliedVoucher}
-                
-                // Callback sukses
-                onPaymentComplete={handleTransactionSuccess} 
-            />
-
+            {/* --- 🛑 PERBAIKAN PANGGILAN MODAL 🛑 --- */}
+            {/* Kita panggil modal baru dengan props yang benar */}
+            {isPaymentModalOpen && (
+                 <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={handleClosePaymentModal}
+                    onPaymentComplete={handlePaymentComplete} // <-- Prop baru
+                    
+                    // Props baru yang dibutuhkan modal
+                    cart={cart}
+                    subtotal={subtotal}
+                    discount={totalDiscount}
+                    total={grandTotal} // <-- 'grandTotal' dipassing sebagai 'total'
+                    customer={selectedCustomer}
+                    voucher={appliedVoucher}
+                />
+            )}
+            {/* --- 🛑 AKHIR PERBAIKAN 🛑 --- */}
+            
             <ReceiptModal isOpen={isReceiptModalOpen} onClose={handleNewTransaction} transactionData={lastTransaction} />
             <DiscountModal isOpen={isDiscountModalOpen} onClose={() => setIsDiscountModalOpen(false)} onApply={handleApplyManualDiscount} currentDiscount={manualDiscount} subtotal={subtotal} />
             <CustomerModal isOpen={isCustomerModalOpen} onClose={() => setIsCustomerModalOpen(false)} onSelectCustomer={setSelectedCustomer} />
