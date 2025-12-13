@@ -21,6 +21,7 @@ import AnalyticsPage from '../pages/AnalyticsPage/AnalyticsPage';
 import OperationalReportPage from '../pages/OperationalReportPage/OperationalReportPage';
 import PromotionPage from '../pages/PromotionPage/PromotionPage';
 import MenuManagementPage from '../pages/MenuManagementPage/MenuManagementPage';
+import TaxManagementPage from '../pages/TaxManagementPage/TaxManagementPage';
 
 // PrivateRoute Anda sudah benar, TIDAK PERLU DIUBAH
 function PrivateRoute({ children, allowedRoles }) {
@@ -61,6 +62,7 @@ function App() {
         {/* --- Level 1: Hanya bisa diakses oleh Owner & Admin --- */}
         <Route element={<PrivateRoute allowedRoles={['admin', 'owner']}><MainLayout /></PrivateRoute>}>
           <Route path="/outlets" element={<OutletManagementPage />} />
+          <Route path="/tax" element={<TaxManagementPage />} />
         </Route>
 
         {/* --- Level 2: Bisa diakses oleh Manager, Owner, Admin --- */}

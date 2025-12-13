@@ -13,7 +13,8 @@ import {
   FaStoreAlt,
   FaSignOutAlt, 
   FaTimes,
-  FaUserEdit
+  FaUserEdit,
+  FaMoneyBillWave // <- tambahkan ini
 } from 'react-icons/fa';
 import './Sidebar.scss';
 
@@ -69,7 +70,16 @@ function Sidebar({ isOpen, toggle }) {
 
           {/* --- MENU LEVEL OWNER KE ATAS (owner, admin) --- */}
           {(userRole === 'admin' || userRole === 'owner') && (
-            <NavLink to="/outlets" onClick={handleLinkClick}><FaStoreAlt /> Manajemen Outlet</NavLink>
+            <>
+              <NavLink to="/outlets" onClick={handleLinkClick}>
+                <FaStoreAlt /> Manajemen Outlet
+              </NavLink>
+
+              {/* === NEW: Pajak === */}
+              <NavLink to="/tax" onClick={handleLinkClick}>
+                <FaMoneyBillWave /> Pajak
+              </NavLink>
+            </>
           )}
 
           {/* --- MENU BERSAMA UNTUK SEMUA PERAN YANG LOGIN --- */}
