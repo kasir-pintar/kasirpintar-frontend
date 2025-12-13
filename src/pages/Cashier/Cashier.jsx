@@ -16,6 +16,7 @@ import DiscountModal from '../../components/DiscountModal';
 import CustomerModal from '../../components/CustomerModal'; 
 import './Cashier.scss';
 import { FaTags } from 'react-icons/fa';
+import { previewTransaction } from '../../services/cashier';
 
 // (Helper formatRupiah)
 const formatRupiah = (number) => {
@@ -48,6 +49,11 @@ function CashierPage() {
     const [appliedVoucher, setAppliedVoucher] = useState(null);
     const [voucherError, setVoucherError] = useState("");
     const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
+    const [taxPreview, setTaxPreview] = useState({
+        percent: 0,
+        amount: 0
+    });
+    
 
     // (loadMenus ... SAMA)
     const loadMenus = async () => {
@@ -226,9 +232,11 @@ function CashierPage() {
     // --- 🛑 PERBAIKAN UTAMA DI SINI 🛑 ---
     // Fungsi ini sekarang "pintar" dan bisa menangani Tunai & QRIS
     const handlePaymentComplete = (transactionData) => {
-        // transactionData:
-        // - Dari Tunai: Objek transaksi LENGKAP dari backend.
-        // - Dari QRIS: Objek MINIMAL: { InvoiceNumber, PaymentMethod, TotalAmount }
+
+        setTaxPreview({
+            percent: transactionData.TaxPercent || 0,
+            amount: transactionData.TaxAmount || 0
+        });
         
         let finalTransactionData;
 
@@ -280,10 +288,43 @@ function CashierPage() {
     };
     
     // (Fungsi Buka/Tutup Modal - SAMA)
-    const openPaymentModal = () => { if (cart.length > 0) { setIsPaymentModalOpen(true); } else { toast.warn('Keranjang masih kosong!'); } };
+    
+
+    const openPaymentModal = async () => {
+        if (cart.length === 0) {
+            toast.warn('Keranjang masih kosong!');
+            return;
+        }
+
+        try {
+            const res = await previewTransaction({
+                items: cart.map(item => ({
+                    menu_id: item.menu_id,
+                    quantity: item.quantity
+                })),
+                discount: totalDiscount,
+                customer_id: selectedCustomer?.ID || null
+            });
+
+            setTaxPreview({
+                percent: res.tax_percent,
+                amount: res.tax_amount
+            });
+
+            setIsPaymentModalOpen(true);
+        } catch (err) {
+            toast.error('Gagal mengambil preview pajak');
+            console.error(err);
+        }
+    };
     const handleClosePaymentModal = () => setIsPaymentModalOpen(false); 
     const handleNewTransaction = () => { setIsReceiptModalOpen(false); setLastTransaction(null); clearCart(); loadMenus(); };
 
+    // ================== DEBUG PAJAK (AMAN) ==================
+    useEffect(() => {
+        console.log('[CASHIER] taxPreview:', taxPreview);
+    }, [taxPreview]);
+    // ========================================================
 
     // --- RENDER JSX (INI ADALAH JSX ASLI ANDA, SUDAH LENGKAP) ---
     return (
@@ -361,34 +402,50 @@ function CashierPage() {
                     </div>
 
                     {cart.length > 0 && (
-                        <div className="cart-summary">
-                            <div className="cart-total"><span>Subtotal:</span><span>Rp {subtotal.toLocaleString('id-ID')}</span></div>
+                    <div className="cart-summary">
 
-                            <div className="voucher-section">
-                                <div className="voucher-input-group">
-                                    <input type="text" placeholder="Masukkan Kode Voucher" value={voucherCode} onChange={(e) => setVoucherCode(e.target.value.toUpperCase())} disabled={!!appliedVoucher || manualDiscount > 0} />
-                                    {appliedVoucher ? (
-                                        <button onClick={handleRemoveVoucher} className="remove-voucher-btn">Hapus</button>
-                                    ) : (
-                                        <button onClick={handleApplyVoucher} disabled={isApplyingVoucher || manualDiscount > 0 || !voucherCode} className="apply-voucher-btn">{isApplyingVoucher ? 'Memeriksa...' : 'Terapkan'}</button>
-                                    )}
-                                </div>
-                                {voucherError && <small className="error-text">{voucherError}</small>}
-                                {appliedVoucher && (
-                                    <div className="applied-voucher-info"><FaTags /> <span>{appliedVoucher.promotion.Name}</span></div>
-                                )}
-                            </div>
+                    <div className="cart-total">
+                        <span>Subtotal:</span>
+                        <span>Rp {subtotal.toLocaleString('id-ID')}</span>
+                    </div>
 
-                            {voucherDiscount > 0 && (<div className="cart-total discount-row"><span>Diskon Voucher:</span><span>- Rp {Math.round(voucherDiscount).toLocaleString('id-ID')}</span></div>)}
-
-                            <div className="cart-total discount-row">
-                                <button className="discount-link" onClick={() => setIsDiscountModalOpen(true)} disabled={!!appliedVoucher}>{manualDiscount > 0 ? 'Ubah Diskon Manual' : 'Diskon Manual'}</button>
-                                <span>- Rp {manualDiscount.toLocaleString('id-ID')}</span>
-                            </div>
-
-                            <div className="cart-total grand-total"><span>TOTAL:</span><span>Rp {Math.round(grandTotal).toLocaleString('id-ID')}</span></div>
-                            <button onClick={openPaymentModal} className="process-button">PROSES PEMBAYARAN</button>
+                    {voucherDiscount > 0 && (
+                        <div className="cart-total discount-row">
+                        <span>Diskon Voucher:</span>
+                        <span>- Rp {Math.round(voucherDiscount).toLocaleString('id-ID')}</span>
                         </div>
+                    )}
+
+                    <div className="cart-total discount-row">
+                        <button
+                        className="discount-link"
+                        onClick={() => setIsDiscountModalOpen(true)}
+                        disabled={!!appliedVoucher}
+                        >
+                        {manualDiscount > 0 ? 'Ubah Diskon Manual' : 'Diskon Manual'}
+                        </button>
+                        <span>- Rp {manualDiscount.toLocaleString('id-ID')}</span>
+                    </div>
+
+                    {taxPreview.amount > 0 && (
+                        <div className="cart-total tax-row">
+                        <span>Pajak ({taxPreview.percent}%)</span>
+                        <span>Rp {Math.round(taxPreview.amount).toLocaleString('id-ID')}</span>
+                        </div>
+                    )}
+
+                    {/* ✅ TOTAL FINAL */}
+                    <div className="cart-total grand-total">
+                        <span>TOTAL:</span>
+                        <span>
+                        Rp {Math.round(grandTotal + taxPreview.amount).toLocaleString('id-ID')}
+                        </span>
+                    </div>
+
+                    <button onClick={openPaymentModal} className="process-button">
+                        PROSES PEMBAYARAN
+                    </button>
+                    </div>
                     )}
                 </aside>
             </main>
@@ -396,19 +453,20 @@ function CashierPage() {
             {/* --- 🛑 PERBAIKAN PANGGILAN MODAL 🛑 --- */}
             {/* Kita panggil modal baru dengan props yang benar */}
             {isPaymentModalOpen && (
-                 <PaymentModal
-                    isOpen={isPaymentModalOpen}
-                    onClose={handleClosePaymentModal}
-                    onPaymentComplete={handlePaymentComplete} // <-- Prop baru
-                    
-                    // Props baru yang dibutuhkan modal
-                    cart={cart}
-                    subtotal={subtotal}
-                    discount={totalDiscount}
-                    total={grandTotal} // <-- 'grandTotal' dipassing sebagai 'total'
-                    customer={selectedCustomer}
-                    voucher={appliedVoucher}
-                />
+            <PaymentModal
+                isOpen={isPaymentModalOpen}
+                onClose={handleClosePaymentModal}
+                onPaymentComplete={handlePaymentComplete}
+
+                cart={cart}
+                subtotal={subtotal}
+                discount={totalDiscount}
+                total={grandTotal}
+
+                tax={taxPreview}   // 🔥 INI YANG HILANG
+                customer={selectedCustomer}
+                voucher={appliedVoucher}
+            />
             )}
             {/* --- 🛑 AKHIR PERBAIKAN 🛑 --- */}
             

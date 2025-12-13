@@ -9,12 +9,21 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
   if (!transactionData) {
     return null;
   }
+  // ================= DEBUG STRUK PAJAK =================
+  console.log('[RECEIPT] TaxPercent:', transactionData.TaxPercent);
+  console.log('[RECEIPT] TaxAmount:', transactionData.TaxAmount);
+  console.log('[RECEIPT] TotalAmount:', transactionData.TotalAmount);
+  // ====================================================
+
   const handlePrint = () => {
     window.print();
   };
 
-  const subtotal = transactionData.Subtotal || (transactionData.TotalAmount + transactionData.Discount);
+  const subtotal = transactionData.Subtotal || 0;
   const discount = transactionData.Discount || 0;
+  const taxAmount = transactionData.TaxAmount || 0;
+  const taxPercent = transactionData.TaxPercent || 0;
+  const total = transactionData.TotalAmount || 0;
 
   return (
     <Modal isOpen={isOpen} onRequestClose={onClose} className="receipt-modal" overlayClassName="receipt-modal-overlay">
@@ -55,20 +64,33 @@ function ReceiptModal({ isOpen, onClose, transactionData }) {
         </main>
         <footer className="receipt-footer">
           <hr />
-          <div className="receipt-summary">
-            <p><span>Subtotal:</span> Rp {subtotal.toLocaleString('id-ID')}</p>
-            {discount > 0 && (
-              <p><span>Diskon:</span> - Rp {discount.toLocaleString('id-ID')}</p>
-            )}
-            <h3><span>Total:</span> Rp {(transactionData.TotalAmount || 0).toLocaleString('id-ID')}</h3>
-            <p><span>Metode Bayar:</span> {transactionData.PaymentMethod}</p>
-            {transactionData.PaymentMethod === 'Tunai' && (
-              <>
-                <p><span>Uang Tunai:</span> Rp {(transactionData.CashTendered || 0).toLocaleString('id-ID')}</p>
-                <p><span>Kembalian:</span> Rp {(transactionData.Change || 0).toLocaleString('id-ID')}</p>
-              </>
-            )}
-          </div>
+            <div className="receipt-summary">
+              <p>
+                <span>Subtotal:</span>
+                <span>Rp {subtotal.toLocaleString('id-ID')}</span>
+              </p>
+
+              {discount > 0 && (
+                <p>
+                  <span>Diskon:</span>
+                  <span>- Rp {discount.toLocaleString('id-ID')}</span>
+                </p>
+              )}
+
+              {taxAmount > 0 && (
+                <p>
+                  <span>
+                    Pajak {taxPercent > 0 ? `(${taxPercent}%)` : ''}:
+                  </span>
+                  <span>Rp {taxAmount.toLocaleString('id-ID')}</span>
+                </p>
+              )}
+
+              <h3>
+                <span>Total:</span>
+                <span>Rp {total.toLocaleString('id-ID')}</span>
+              </h3>
+            </div>
           <hr />
           <p className="thank-you">Terima kasih atas kunjungan Anda!</p>
         </footer>

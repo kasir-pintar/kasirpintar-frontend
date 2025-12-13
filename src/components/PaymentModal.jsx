@@ -71,11 +71,8 @@ const QrisPaymentWatcher = ({
                 const res = await checkTransactionStatus(invoiceNumber);
                 if (res.status === 'PAID') {
                     setStatus('paid');
-                    if (pollIntervalRef.current) {
-                        clearInterval(pollIntervalRef.current); // Stop polling
-                    }
-                    toast.success("Pembayaran QRIS Berhasil!");
-                    setTimeout(onPaymentSuccess, 1000); 
+                    clearInterval(pollIntervalRef.current); // ✅ SUDAH BENAR
+                    setTimeout(onPaymentSuccess, 1000);
                 }
                 // Jika masih PENDING, biarkan polling berlanjut
              } catch (err) {
@@ -136,6 +133,7 @@ const PaymentModal = ({
     subtotal,
     discount,
     total,
+    tax,
     customer,
     voucher
 }) => {
@@ -144,11 +142,18 @@ const PaymentModal = ({
     const [isLoading, setIsLoading] = useState(false);
     const [qrisData, setQrisData] = useState(null); 
     const [paymentError, setPaymentError] = useState('');
+    // ================= DEBUG PAJAK =================
+    useEffect(() => {
+        console.log('[PAYMENT MODAL] tax:', tax);
+    }, [tax]);
+    // ===============================================
+
+    const finalTotal = total + (tax?.amount || 0);
 
     const change = useMemo(() => {
-        const changeVal = cashTendered - total;
+        const changeVal = cashTendered - finalTotal;
         return changeVal >= 0 ? changeVal : 0;
-    }, [cashTendered, total]);
+    }, [cashTendered, finalTotal]);
 
     useEffect(() => {
         if (isOpen) {
@@ -184,7 +189,7 @@ const PaymentModal = ({
 
         try {
             if (selectedMethod === 'Tunai') {
-                if (cashTendered < total) {
+                if (cashTendered < finalTotal) {
                     toast.error("Uang tunai kurang dari total belanja!");
                     setIsLoading(false);
                     return;
@@ -203,8 +208,9 @@ const PaymentModal = ({
                 if (response.qr_string && response.data && response.data.InvoiceNumber) {
                     setQrisData({
                         qrString: response.qr_string,
-                        invoiceNumber: response.data.InvoiceNumber, // Ini yang PENTING
-                        expiry: response.midtrans_response?.expiry_time
+                        invoiceNumber: response.data.InvoiceNumber,
+                        expiry: response.midtrans_response?.expiry_time,
+                        fullTransaction: response.data // 🔥 SIMPAN DATA LENGKAP
                     });
                 } else {
                     throw new Error("Gagal mendapatkan data QR Code dari server.");
@@ -220,11 +226,8 @@ const PaymentModal = ({
     };
 
     const handleQrisSuccess = () => {
-        onPaymentComplete({ 
-            InvoiceNumber: qrisData.invoiceNumber, 
-            PaymentMethod: 'QRIS',
-            TotalAmount: total,
-        });
+        // 🔥 QRIS: gunakan data dari backend saat createTransaction
+        onPaymentComplete(qrisData.fullTransaction);
     };
 
     return (
@@ -244,10 +247,21 @@ const PaymentModal = ({
             <div className="modal-body">
                 {!qrisData && (
                     <>
-                        <div className="payment-summary">
-                            <p>Subtotal: <span>{formatRupiah(subtotal)}</span></p>
-                            <p>Diskon: <span>- {formatRupiah(discount)}</span></p>
-                            <h4 className="total-amount">Total Bayar: <span>{formatRupiah(total)}</span></h4>
+                    <div className="payment-summary">
+                        <p>Subtotal: <span>{formatRupiah(subtotal)}</span></p>
+                        <p>Diskon: <span>- {formatRupiah(discount)}</span></p>
+
+                        {tax?.amount > 0 && (
+                            <p>
+                            Pajak ({tax.percent}%):
+                            <span>{formatRupiah(tax.amount)}</span>
+                            </p>
+                        )}
+
+                        <h4 className="total-amount">
+                            Total Bayar:
+                            <span>{formatRupiah(subtotal - discount + (tax?.amount || 0))}</span>
+                        </h4>
                         </div>
 
                         <div className="payment-method-selector">
@@ -294,7 +308,7 @@ const PaymentModal = ({
                             <button
                                 onClick={handleSubmitPayment}
                                 className="btn-primary"
-                                disabled={isLoading || (selectedMethod === 'Tunai' && cashTendered < total)}
+                                disabled={isLoading || (selectedMethod === 'Tunai' && cashTendered < finalTotal)}
                             >
                                 {isLoading ? "Memproses..." : (selectedMethod === 'Tunai' ? "Bayar Tunai" : "Buat Kode QRIS")}
                             </button>

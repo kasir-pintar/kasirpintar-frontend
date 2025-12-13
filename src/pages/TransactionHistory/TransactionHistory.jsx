@@ -127,8 +127,15 @@ function TransactionHistoryPage() {
 
   // Handler untuk lihat struk
   const handleViewReceipt = (trx) => {
-     const subtotal = trx.Subtotal ?? (trx.TotalAmount + trx.Discount);
-    const receiptData = { ...trx, Subtotal: subtotal };
+    const subtotal = trx.Subtotal ?? (trx.TotalAmount + trx.Discount);
+
+    const receiptData = {
+      ...trx,
+      Subtotal: subtotal,
+      TaxPercent: trx.tax_percent ?? 0,
+      TaxAmount: trx.tax_amount ?? 0,
+    };
+
     setSelectedTransaction(receiptData);
     setIsReceiptModalOpen(true);
   };

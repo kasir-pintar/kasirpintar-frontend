@@ -57,3 +57,16 @@ export const checkTransactionStatus = async (invoiceNumber) => {
         throw error.response?.data || error;
     }
 };
+
+/**
+ * Preview transaksi (hitung pajak tanpa simpan DB)
+ */
+export const previewTransaction = async (payload) => {
+    try {
+        const response = await authApi().post('/cashier/transactions/preview', payload);
+        return response.data;
+    } catch (error) {
+        console.error("Error preview transaction:", error.message || error);
+        throw error.response?.data || error;
+    }
+};
