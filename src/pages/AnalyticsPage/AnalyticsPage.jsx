@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { getAllMenus } from '../../services/menu';
 import { getSalesForecast } from '../../services/forecast';
 import { getAllOutlets } from '../../services/outlet';
@@ -11,6 +11,7 @@ import {
   LineElement,
   PointElement,
   Title,
+  SubTitle,   
   Tooltip,
   Legend,
 } from 'chart.js';
@@ -25,6 +26,19 @@ import {
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
+const whiteBackgroundPlugin = {
+  id: 'whiteBackground',
+  beforeDraw: (chart) => {
+    const ctx = chart.canvas.getContext('2d');
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, chart.width, chart.height);
+    ctx.restore();
+  },
+};
+
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,34 +46,28 @@ ChartJS.register(
   LineElement,
   PointElement,
   Title,
+  SubTitle,          
   Tooltip,
-  Legend
+  Legend,
+  whiteBackgroundPlugin
 );
 
-// --- 🔹 FUNGSI PENTING UNTUK DECODE TOKEN 🔹 ---
 const getTokenData = () => {
   const token = localStorage.getItem('authToken');
   if (!token) return null;
   try {
-    // Decode bagian payload (tengah) dari JWT
     const payload = JSON.parse(atob(token.split('.')[1]));
-    // payload akan berisi: { role: 'owner', outlet_id: 1, email: ... }
     return payload;
   } catch (e) {
     console.error("Token tidak valid atau rusak:", e);
     return null;
   }
 };
-// --- 🔹 AKHIR FUNGSI 🔹 ---
-
 
 function AnalyticsPage() {
 
-  // --- 🔹 PERBAIKAN STATE PENGGUNA 🔹 ---
-  // Ambil data user dari token
   const [user, setUser] = useState(getTokenData());
-  const isOwner = user?.role === 'owner'; // Ini sekarang akan 'true'
-  // --- 🔹 AKHIR PERBAIKAN 🔹 ---
+  const isOwner = user?.role === 'owner'; 
 
   const [menus, setMenus] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState('');
@@ -68,11 +76,16 @@ function AnalyticsPage() {
   const [predictionResult, setPredictionResult] = useState(null);
   const [outlets, setOutlets] = useState([]);
   
-  // State untuk owner dimulai kosong, agar dia *harus* memilih
   const [selectedOutlet, setSelectedOutlet] = useState('');
 
-  // --- useEffect: Fetch daftar outlet (HANYA UNTUK OWNER) ---
-  // Ini sekarang akan berjalan karena 'isOwner' true
+  const selectedOutletName = useMemo(() => {
+    if (!isOwner) return 'Semua Outlet';
+    return (
+      outlets.find(o => String(o.ID) === String(selectedOutlet))?.Name ||
+      'Tidak diketahui'
+    );
+  }, [isOwner, selectedOutlet, outlets]);
+
   useEffect(() => {
     if (!isOwner) return; 
     const fetchOutlets = async () => {
@@ -87,7 +100,6 @@ function AnalyticsPage() {
     fetchOutlets();
   }, [isOwner]);
 
-  // --- useEffect: Fetch daftar menu ---
   useEffect(() => {
     const fetchMenus = async () => {
       try {
@@ -99,28 +111,24 @@ function AnalyticsPage() {
       }
     };
 
-    // 1. Jika bukan owner, langsung fetch
-    // 2. Jika owner, HANYA fetch jika 'selectedOutlet' SUDAH DIPILIH
     if (!isOwner || (isOwner && selectedOutlet)) {
       fetchMenus();
     } else {
-      setMenus([]); // Kosongkan menu jika owner belum pilih outlet
+      setMenus([]); 
     }
   }, [isOwner, selectedOutlet, user]); 
 
-  // --- Fungsi: Ambil Prediksi ---
   const handleGetForecast = async () => {
-    // 🔹 PERTAMA: Validasi di frontend
     if (isOwner && !selectedOutlet) {
       setForecastError('Owner harus memilih outlet terlebih dahulu.');
       toast.warn('Silakan pilih outlet terlebih dahulu.');
-      return; // <-- Berhenti di sini
+      return; 
     }
 
     if (!selectedProduct) {
       setForecastError('Silakan pilih produk terlebih dahulu.');
       toast.warn('Silakan pilih produk terlebih dahulu.');
-      return; // <-- Berhenti di sini
+      return; 
     }
 
     try {
@@ -128,8 +136,6 @@ function AnalyticsPage() {
       setForecastError('');
       setPredictionResult(null);
 
-      // 'selectedOutlet' akan dikirim ke service (misal: "1" atau "2")
-      // 'outletToForecast' untuk non-owner akan 'undefined'
       const outletToForecast = isOwner ? selectedOutlet : undefined;
       
       const response = await getSalesForecast(selectedProduct, 7, outletToForecast);
@@ -156,9 +162,21 @@ function AnalyticsPage() {
       setForecastLoading(false);
     }
   };
-  
-  // ... (Sisa kode (getDayName, Charts, JSX) tidak perlu diubah) ...
-  // ... (Saya sertakan di bawah agar lengkap) ...
+
+  const validationChartRef = useRef(null);
+  const forecastChartRef = useRef(null);
+
+  const downloadChartPNG = (chartRef, filename) => {
+    if (!chartRef?.current) return;
+
+    const chart = chartRef.current;
+    const image = chart.toBase64Image();
+
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = filename;
+    link.click();
+  };
 
   const getDayName = (dateString) => {
     try {
@@ -177,27 +195,25 @@ function AnalyticsPage() {
       legend: { display: false },
       title: {
         display: true,
-        text: `Prediksi Penjualan (Unit) untuk ${selectedProduct}`,
+        text: 'Prediksi Penjualan 7 Hari ke Depan',
+        font: { size: 16 }
+      },
+      subtitle: {
+        display: true,
+        text: `Menu: ${selectedProduct} — Outlet: ${selectedOutletName}`,
+        font: { size: 12 },
+        padding: { bottom: 10 }
       },
       tooltip: {
         callbacks: {
-          label: function (context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += Math.round(context.parsed.y);
-            }
-            return label;
-          },
+          label: (context) => `Prediksi: ${Math.round(context.parsed.y)} unit`,
         },
       },
     },
     scales: {
       y: {
         beginAtZero: true,
-        ticks: { precision: 0, stepSize: 1 },
+        ticks: { precision: 0 },
         title: { display: true, text: 'Estimasi Jumlah Unit Terjual' },
       },
     },
@@ -236,8 +252,15 @@ function AnalyticsPage() {
       legend: { position: 'top' },
       title: {
         display: true,
-        text: 'Performa Model: Penjualan Aktual vs. Hasil Prediksi (Data Historis)',
+        text: 'Actual vs Forecast Plot (Data Historis)',
+        font: { size: 16 }
       },
+      subtitle: {
+        display: true,
+        text: `Menu: ${selectedProduct} — Outlet: ${selectedOutletName}`,
+        font: { size: 12 },
+        padding: { bottom: 10 }
+      }
     },
     scales: {
       x: { title: { display: true, text: 'Tanggal' } },
@@ -281,8 +304,6 @@ function AnalyticsPage() {
     };
   }, [predictionResult]);
 
-  // --- RENDER JSX ---
-  // JSX ini sekarang akan berfungsi karena 'isOwner' bernilai 'true'
   return (
     <div className="analytics-container">
       <div className="analytics-header">
@@ -301,7 +322,6 @@ function AnalyticsPage() {
         </p>
         <div className="forecast-controls">
           
-          {/* 🔹 DROPDOWN INI SEKARANG AKAN MUNCUL 🔹 */}
           {isOwner && (
             <select
               value={selectedOutlet}
@@ -329,7 +349,7 @@ function AnalyticsPage() {
               setForecastError('');
             }}
             disabled={
-              (isOwner && !selectedOutlet) || // Nonaktifkan jika owner belum pilih
+              (isOwner && !selectedOutlet) || 
               !Array.isArray(menus) ||
               menus.length === 0
             }
@@ -353,7 +373,7 @@ function AnalyticsPage() {
             disabled={
               forecastLoading ||
               !selectedProduct ||
-              (isOwner && !selectedOutlet) // Nonaktifkan jika owner belum pilih
+              (isOwner && !selectedOutlet) 
             }
           >
             {forecastLoading ? 'Memproses...' : 'Buat Prediksi & Evaluasi'}
@@ -362,7 +382,6 @@ function AnalyticsPage() {
 
         {forecastError && <p className="error-message small">{forecastError}</p>}
 
-        {/* ... Sisa JSX untuk menampilkan hasil ... */}
         {predictionResult && !forecastLoading && (
           <>
             {predictionResult.metrics && (
@@ -413,20 +432,35 @@ function AnalyticsPage() {
               </div>
             )}
 
-            {predictionResult.validation &&
-              predictionResult.validation.length > 0 && (
-                <div className="validation-chart-container chart-card">
-                  <h4>
-                    <FaChartLine /> Visualisasi Kinerja Model (Data Historis)
-                  </h4>
-                  <div className="chart-wrapper">
-                    <Line
-                      options={validationChartOptions}
-                      data={validationChartData}
-                    />
-                  </div>
+          {predictionResult.validation &&
+            predictionResult.validation.length > 0 && (
+              <div className="validation-chart-container chart-card">
+                <h4>
+                  <FaChartLine /> Actual vs Forecast Plot (Data Historis)
+                </h4>
+                <p className="small text-muted">
+                  Perbandingan penjualan aktual dan hasil prediksi model pada periode historis.
+                </p>
+                <div className="chart-wrapper">
+                  <button
+                    className="btn-download"
+                    onClick={() =>
+                      downloadChartPNG(
+                        validationChartRef,
+                        `actual_vs_forecast_${selectedProduct}.png`
+                      )
+                    }
+                  >
+                    Download PNG
+                  </button>
+                  <Line
+                    ref={validationChartRef}
+                    options={validationChartOptions}
+                    data={validationChartData}
+                  />
                 </div>
-              )}
+              </div>
+            )}
 
             {predictionResult.forecast &&
               predictionResult.forecast.length > 0 && (
@@ -440,7 +474,19 @@ function AnalyticsPage() {
                   </p>
 
                   <div className="forecast-chart-container chart-wrapper">
+                    <button
+                      className="btn-download"
+                      onClick={() =>
+                        downloadChartPNG(
+                          forecastChartRef,
+                          `forecast_7hari_${selectedProduct}.png`
+                        )
+                      }
+                    >
+                      Download PNG
+                    </button>
                     <Bar
+                      ref={forecastChartRef}
                       options={forecastChartOptions}
                       data={forecastChartData}
                     />
