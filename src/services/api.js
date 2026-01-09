@@ -1,5 +1,9 @@
 import axios from 'axios';
-const api = axios.create({ baseURL: 'http://localhost:8080/api' });
+
+const api = axios.create({
+  baseURL: 'https://kasirpintar-api-production.up.railway.app/api',
+});
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
@@ -10,6 +14,7 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -20,4 +25,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 export default api;
