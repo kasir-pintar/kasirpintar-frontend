@@ -169,6 +169,15 @@
       &.role-cashier {
         background-color: #28a745;
       }
+
+      &.role-owner {
+        background-color: #6f42c1;
+      }
+
+      &.role-branch_manager {
+        background-color: #ffc107;
+        color: #212529;
+      }
     }
 
     .action-cell {
@@ -249,22 +258,23 @@
       }
     }
   }
-// Tambahkan ini di dalam file UserManagementPage.scss Anda
 
-.owner-info-box {
-  background-color: #e9f2ff;
-  color: #0056b3;
-  border: 1px solid #b8d6fb;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 25px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.95em;
+  // Tambahkan ini di dalam file UserManagementPage.scss Anda
 
-  svg {
-    font-size: 1.2em;
+  .owner-info-box {
+    background-color: #e9f2ff;
+    color: #0056b3;
+    border: 1px solid #b8d6fb;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95em;
+
+    svg {
+      font-size: 1.2em;
+    }
   }
-}
 }
