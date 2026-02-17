@@ -1,6 +1,6 @@
 // LOKASI: src/routes/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 // Import Layouts
@@ -41,6 +41,10 @@ function PrivateRoute({ children, allowedRoles }) {
 }
 
 function App() {
+  if (window.location.search.startsWith('?redirect=')) {
+    const redirect = window.location.search.replace('?redirect=', '');
+    window.history.replaceState(null, null, redirect);
+  }
   return (
     <Router>
       <Routes>
@@ -49,14 +53,14 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        
+
         {/* --- Rute Khusus Kasir (Tanpa Sidebar/Layout Utama) --- */}
         <Route path="/cashier" element={
           <PrivateRoute allowedRoles={['admin', 'owner', 'branch_manager', 'cashier']}>
             <CashierPage />
           </PrivateRoute>
         } />
-        
+
         {/* === GRUP RUTE UTAMA DENGAN SIDEBAR (MainLayout) === */}
 
         {/* --- Level 1: Hanya bisa diakses oleh Owner & Admin --- */}
@@ -69,27 +73,27 @@ function App() {
         <Route element={<PrivateRoute allowedRoles={['admin', 'owner', 'branch_manager']}><MainLayout /></PrivateRoute>}>
           <Route path="/dashboard" element={<DashboardIndexPage />} />
           <Route path="/users" element={<UserManagementPage />} />
-          
+
           {/* --- 🛑 PERBAIKAN 1 🛑 --- */}
           {/* Rute /transactions DIHAPUS DARI SINI */}
           {/* <Route path="/transactions" element={<TransactionHistoryPage />} /> */}
-          
+
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/reports" element={<OperationalReportPage />} />
           <Route path="/promotions" element={<PromotionPage />} />
           <Route path="/management/menus" element={<MenuManagementPage />} />
         </Route>
-        
+
         {/* --- Level 3: Bisa diakses SEMUA peran yang login --- */}
         <Route element={<PrivateRoute allowedRoles={['admin', 'owner', 'branch_manager', 'cashier']}><MainLayout /></PrivateRoute>}>
-            <Route path="/profile" element={<ProfilePage />} />
-            
-            {/* --- 🛑 PERBAIKAN 2 🛑 --- */}
-            {/* Rute /transactions DITAMBAHKAN KE SINI */}
-            {/* Sekarang SEMUA role yang diizinkan (termasuk kasir) bisa mengaksesnya */}
-            <Route path="/transactions" element={<TransactionHistoryPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+
+          {/* --- 🛑 PERBAIKAN 2 🛑 --- */}
+          {/* Rute /transactions DITAMBAHKAN KE SINI */}
+          {/* Sekarang SEMUA role yang diizinkan (termasuk kasir) bisa mengaksesnya */}
+          <Route path="/transactions" element={<TransactionHistoryPage />} />
         </Route>
-        
+
         {/* Rute fallback jika tidak ada yang cocok */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
